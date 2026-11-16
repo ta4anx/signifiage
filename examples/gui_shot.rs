@@ -3,6 +3,9 @@
 //! ```text
 //! cargo run --release --example gui_shot -- --project /tmp/show --page run --out /tmp/run.png
 //! ```
+//!
+//! The harness keeps its own XDG config/state directory so screenshots never
+//! touch the developer's real recent-projects list.
 
 use std::cell::RefCell;
 use std::path::PathBuf;
@@ -17,7 +20,27 @@ use libadwaita as adw;
 use signifiage::config::Config;
 use signifiage::ui::window::MainWindow;
 
+/// Point config/state at a scratch directory unless the caller chose one.
+fn isolate_environment(tag: &str) {
+    for variable in ["XDG_CONFIG_HOME", "XDG_STATE_HOME"] {
+        if std::env::var_os(variable).is_some() {
+            continue;
+        }
+        let dir = std::env::temp_dir().join(format!(
+            "signifiage-{tag}-{}-{variable}",
+            std::process::id()
+        ));
+        if std::fs::create_dir_all(&dir).is_ok() {
+            // SAFETY: called before GTK or any worker thread starts.
+            unsafe {
+                std::env::set_var(variable, dir);
+            }
+        }
+    }
+}
+
 fn main() -> glib::ExitCode {
+    isolate_environment("gui-shot");
     let mut project = PathBuf::from("tests/fixtures/demo-project");
     let mut page = "design".to_string();
     let mut out = PathBuf::from("/tmp/signifiage-gui.png");

@@ -850,7 +850,6 @@ impl Inner {
         };
 
         let prompter = self.controller.project_clone().prompter;
-        let runtime = self.prompter.runtime();
         let mut slot = self.prompter_output.borrow_mut();
         let same_window = slot
             .as_ref()

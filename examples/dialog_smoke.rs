@@ -6,6 +6,8 @@
 //!
 //! Construction-time GTK errors (bad widget parents, missing models, panics in
 //! signal wiring) show up here without a human clicking through the UI.
+//!
+//! Like `gui_shot`, the harness uses its own XDG config/state directory.
 
 use std::cell::{Cell, RefCell};
 use std::path::PathBuf;
@@ -21,7 +23,27 @@ use signifiage::config::Config;
 use signifiage::ui::dialogs;
 use signifiage::ui::window::MainWindow;
 
+/// Point config/state at a scratch directory unless the caller chose one.
+fn isolate_environment(tag: &str) {
+    for variable in ["XDG_CONFIG_HOME", "XDG_STATE_HOME"] {
+        if std::env::var_os(variable).is_some() {
+            continue;
+        }
+        let dir = std::env::temp_dir().join(format!(
+            "signifiage-{tag}-{}-{variable}",
+            std::process::id()
+        ));
+        if std::fs::create_dir_all(&dir).is_ok() {
+            // SAFETY: called before GTK or any worker thread starts.
+            unsafe {
+                std::env::set_var(variable, dir);
+            }
+        }
+    }
+}
+
 fn main() -> glib::ExitCode {
+    isolate_environment("dialog-smoke");
     let project = std::env::args_os()
         .nth(1)
         .map(PathBuf::from)
