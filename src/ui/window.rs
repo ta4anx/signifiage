@@ -161,6 +161,17 @@ impl MainWindow {
 
         inner.build_layout(design.clone(), soundboard.clone());
 
+        // Prompter output widget factory (used whenever a prompter window opens).
+        {
+            let runtime = prompter.runtime();
+            let factory_controller = controller.clone();
+            controller.set_prompter_factory(Rc::new(move || {
+                let view = crate::ui::prompter_view::PrompterView::with_runtime(runtime.clone());
+                view.set_settings(&factory_controller.project_clone().prompter);
+                view.upcast()
+            }));
+        }
+
         // Controller callbacks.
         {
             let weak = Rc::downgrade(&inner);
@@ -830,12 +841,14 @@ impl Inner {
     /// Put a `PrompterView` into the prompter output window instead of a scene view.
     fn sync_prompter_output(&self) {
         let Some(outputs) = self.controller.outputs() else {
+            eprintln!("DBG sync: no outputs");
             return;
         };
         let Some(window) = outputs.window_for(crate::ui::outputs::OutputRole::Prompter) else {
             self.prompter_output.borrow_mut().take();
             return;
         };
+
         let prompter = self.controller.project_clone().prompter;
         let runtime = self.prompter.runtime();
         let mut slot = self.prompter_output.borrow_mut();
@@ -844,10 +857,13 @@ impl Inner {
             .and_then(|(weak, _)| weak.upgrade())
             .is_some_and(|existing| existing.eq(&window));
         if !same_window {
-            let view = crate::ui::prompter_view::PrompterView::with_runtime(runtime);
-            view.set_settings(&prompter);
-            window.set_child(Some(&view));
-            *slot = Some((window.downgrade(), view.upcast()));
+            // The factory installed by `refresh` builds the widget when the window
+            // is created; keep a handle so settings can be pushed later.
+            if let Some(widget) = window.child()
+                && widget.is::<crate::ui::prompter_view::PrompterView>()
+            {
+                *slot = Some((window.downgrade(), widget));
+            }
         } else if let Some((_, widget)) = slot.as_ref()
             && let Some(view) = widget.downcast_ref::<crate::ui::prompter_view::PrompterView>()
         {

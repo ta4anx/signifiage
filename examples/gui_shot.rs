@@ -23,6 +23,7 @@ fn main() -> glib::ExitCode {
     let mut out = PathBuf::from("/tmp/signifiage-gui.png");
     let mut width = 1440;
     let mut height = 900;
+    let mut prompter_output = false;
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -47,6 +48,7 @@ fn main() -> glib::ExitCode {
                     width = value;
                 }
             }
+            "--prompter-output" => prompter_output = true,
             "--height" => {
                 if let Some(value) = args.next().and_then(|v| v.parse().ok()) {
                     height = value;
@@ -77,13 +79,39 @@ fn main() -> glib::ExitCode {
             };
             let main = MainWindow::new(app, Some(project.clone()), config);
             main.show_page(&page);
+            if prompter_output {
+                if let Some(outputs) = main.controller().outputs() {
+                    outputs.open_windowed(signifiage::ui::outputs::OutputRole::Prompter);
+                }
+                main.controller().apply_output_config();
+            }
             window.replace(Some(main));
 
             let success = success.clone();
             let window = window.clone();
             let out = out.clone();
             let app = app.clone();
+
             glib::timeout_add_local_once(Duration::from_millis(900), move || {
+                if prompter_output {
+                    let mut found = 0;
+                    for toplevel in gtk::Window::list_toplevels() {
+                        if let Ok(window) = toplevel.downcast::<gtk::Window>() {
+                            let title = window.title().map(|t| t.to_string()).unwrap_or_default();
+                            let child = window
+                                .child()
+                                .map(|c| c.type_().name().to_string())
+                                .unwrap_or_else(|| "none".to_string());
+                            println!("window {title:?} child={child}");
+                            if window.child().is_some_and(|c| {
+                                c.is::<signifiage::ui::prompter_view::PrompterView>()
+                            }) {
+                                found += 1;
+                            }
+                        }
+                    }
+                    println!("prompter output windows with PrompterView: {found}");
+                }
                 let texture = window
                     .borrow()
                     .as_ref()

@@ -301,6 +301,7 @@ pub struct Controller {
         >,
     >,
     live: Rc<LiveFlags>,
+    prompter_factory: RefCell<Option<Rc<dyn Fn() -> gtk::Widget>>>,
     prompter_hook: RefCell<Option<Rc<dyn Fn(PrompterCall)>>>,
     soundboard_hook: RefCell<Option<Rc<dyn Fn(SoundboardCall)>>>,
     deck_hook: RefCell<Option<Rc<dyn Fn(DeckCall)>>>,
@@ -355,6 +356,7 @@ impl Controller {
             portal_pending: RefCell::new(std::collections::HashSet::new()),
             portal_results: RefCell::new(std::collections::HashMap::new()),
             live: Rc::new(LiveFlags::default()),
+            prompter_factory: RefCell::new(None),
             prompter_hook: RefCell::new(None),
             soundboard_hook: RefCell::new(None),
             deck_hook: RefCell::new(None),
@@ -369,6 +371,11 @@ impl Controller {
     /// Runtime flags mirrored by pages (prompter, soundboard, deck).
     pub fn live(&self) -> Rc<LiveFlags> {
         self.live.clone()
+    }
+
+    /// Builds the prompter output widget; installed once at startup.
+    pub fn set_prompter_factory(&self, factory: Rc<dyn Fn() -> gtk::Widget>) {
+        self.prompter_factory.replace(Some(factory));
     }
 
     pub fn set_prompter_hook(&self, hook: Rc<dyn Fn(PrompterCall)>) {
@@ -1901,6 +1908,12 @@ impl Controller {
 
     /// Create the output manager and apply the configured monitors.
     pub fn ensure_outputs(&self) {
+        eprintln!(
+            "DBG ensure_outputs: existing={} mode={:?} app={}",
+            self.outputs.borrow().is_some(),
+            self.mode,
+            self.app.borrow().is_some()
+        );
         if self.outputs.borrow().is_some() || self.mode == Mode::Player {
             return;
         }
@@ -1908,6 +1921,9 @@ impl Controller {
             return;
         };
         let manager = OutputManager::new(&app);
+        if let Some(factory) = self.prompter_factory.borrow().clone() {
+            manager.set_prompter_factory(factory);
+        }
         let config = self.config.borrow().clone();
         manager.apply(&config);
         if let Some(view) = manager.program_view() {
@@ -1959,6 +1975,8 @@ impl Controller {
             self.attach_view(ViewRole::Preview, &view);
         }
         self.refresh_views();
+        // Windows may have opened or closed: let the window reparent special outputs.
+        self.notify_changed();
     }
 
     /// True when a view for this role is currently attached.

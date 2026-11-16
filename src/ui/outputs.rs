@@ -43,6 +43,8 @@ struct OutputWindow {
     view: SceneView,
     fullscreen: bool,
     monitor_key: String,
+    /// Opened by the user (prompter fallback), not by monitor assignment.
+    manual: bool,
 }
 
 pub struct OutputManager {
@@ -50,6 +52,8 @@ pub struct OutputManager {
     windows: RefCell<HashMap<OutputRole, OutputWindow>>,
     windowed: Cell<bool>,
     inhibit: Cell<u32>,
+    /// Builds the prompter widget (a `PrompterView`) for the output window.
+    prompter_factory: RefCell<Option<Rc<dyn Fn() -> gtk::Widget>>>,
 }
 
 impl OutputManager {
@@ -59,6 +63,7 @@ impl OutputManager {
             windows: RefCell::new(HashMap::new()),
             windowed: Cell::new(false),
             inhibit: Cell::new(0),
+            prompter_factory: RefCell::new(None),
         })
     }
 
@@ -72,6 +77,18 @@ impl OutputManager {
             .borrow()
             .get(&role)
             .map(|entry| entry.view.clone())
+    }
+
+    /// Install the builder used for the prompter output window.
+    pub fn set_prompter_factory(&self, factory: Rc<dyn Fn() -> gtk::Widget>) {
+        self.prompter_factory.replace(Some(factory));
+    }
+
+    fn prompter_widget(&self) -> Option<gtk::Widget> {
+        self.prompter_factory
+            .borrow()
+            .as_ref()
+            .map(|factory| factory())
     }
 
     /// The window that shows this role, if it is open.
@@ -124,7 +141,16 @@ impl OutputManager {
         wanted: bool,
     ) {
         if !wanted {
-            self.close(role);
+            // A manually opened window (prompter fallback) stays until closed.
+            let manual = self
+                .windows
+                .borrow()
+                .get(&role)
+                .map(|entry| entry.manual)
+                .unwrap_or(false);
+            if !manual {
+                self.close(role);
+            }
             return;
         }
         let role_config = match role {
@@ -165,7 +191,10 @@ impl OutputManager {
             .title(&format!("Signifiage {}", rust_i18n::t!(role.label_key())))
             .build();
         window.set_can_focus(false);
-        window.set_child(Some(&view));
+        match (role, self.prompter_widget()) {
+            (OutputRole::Prompter, Some(widget)) => window.set_child(Some(&widget)),
+            _ => window.set_child(Some(&view)),
+        }
         window.set_cursor_from_name(Some("none"));
         window.set_default_size(960, 540);
 
@@ -190,6 +219,7 @@ impl OutputManager {
                 view,
                 fullscreen,
                 monitor_key,
+                manual: false,
             },
         );
     }
@@ -214,7 +244,15 @@ impl OutputManager {
             .application(&self.app)
             .title(&format!("Signifiage {}", rust_i18n::t!(role.label_key())))
             .build();
-        window.set_child(Some(&view));
+        eprintln!(
+            "DBG open_windowed role={role:?} factory={}",
+            self.prompter_factory.borrow().is_some()
+        );
+        let child = match (role, self.prompter_widget()) {
+            (OutputRole::Prompter, Some(widget)) => widget,
+            _ => view.clone().upcast(),
+        };
+        window.set_child(Some(&child));
         window.set_default_size(960, 540);
         window.present();
         self.windows.borrow_mut().insert(
@@ -224,6 +262,7 @@ impl OutputManager {
                 view,
                 fullscreen: false,
                 monitor_key: "none".to_string(),
+                manual: true,
             },
         );
     }
