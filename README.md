@@ -124,12 +124,17 @@ cargo fmt && cargo clippy --all-targets
 cargo run --release --example render_scene -- --out /tmp/scene.png
 cargo run --release --example gui_shot -- --project tests/fixtures/demo-project --page run --out /tmp/run.png
 cargo run --release --example dialog_smoke -- tests/fixtures/demo-project
+cargo run --release --example interaction_smoke -- tests/fixtures/demo-project
 ```
 
 `render_scene` renders one scene to a PNG, `gui_shot` renders a whole window page
-(design/run/queue/prompter/soundboard) into a PNG, and `dialog_smoke` constructs the
-New Project, Timers, Schedules and About dialogs against a real project to catch
-construction-time GTK errors without clicking through the UI.
+(design/run/queue/prompter/soundboard) into a PNG, `dialog_smoke` constructs the
+dialogs against a real project, and `interaction_smoke` checks the wiring that
+screenshots cannot see: hit-testing on every view-switcher tab, page switching,
+all window menu actions, a page button handler, and that handlers still work after
+the caller drops the window handle (the failure mode that once made every button
+silent). `x11_click` sends one XTest click at absolute coordinates, for manual
+checks on an X11/XWayland session.
 
 Projects are plain directories: `project.json` plus `assets/`. Saves are atomic
 (`project.json.tmp` → rename) with `project.json.bak` as the fallback. Scenes,

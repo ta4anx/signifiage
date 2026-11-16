@@ -55,6 +55,10 @@ struct Inner {
     soundboard: Rc<SoundboardPage>,
     prompter: Rc<PrompterPage>,
     prompter_output: RefCell<Option<(glib::WeakRef<gtk::Window>, gtk::Widget)>>,
+    /// Keeps the window state alive even if the caller drops `MainWindow`; the
+    /// cycle is broken when the window is closed. Without this, every handler
+    /// (which upgrades a `Weak<Inner>`) silently dies while GTK keeps painting.
+    self_ref: RefCell<Option<Rc<Inner>>>,
 }
 
 impl MainWindow {
@@ -123,7 +127,9 @@ impl MainWindow {
             soundboard: SoundboardPage::new(controller.clone(), overlay.clone()),
             prompter: PrompterPage::new(controller.clone(), overlay.clone()),
             prompter_output: RefCell::new(None),
+            self_ref: RefCell::new(None),
         });
+        *inner.self_ref.borrow_mut() = Some(inner.clone());
 
         *inner.weak_self.borrow_mut() = Some(Rc::downgrade(&inner));
 
@@ -723,8 +729,14 @@ impl Inner {
             if let Some(outputs) = inner.controller.outputs() {
                 outputs.close_all();
             }
+            inner.release_self();
             glib::Propagation::Proceed
         });
+    }
+
+    /// Drop the self-reference cycle so the state can be freed with the window.
+    fn release_self(&self) {
+        self.self_ref.borrow_mut().take();
     }
 
     fn self_weak(&self) -> Option<Rc<Inner>> {
