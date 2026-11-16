@@ -1,0 +1,62 @@
+[package]
+name = "signifiage"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+description = "Signage, stage playback and queue console"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/ta4anx/signifiage"
+authors = ["signifiage contributors"]
+default-run = "signifiage"
+
+[lib]
+name = "signifiage"
+path = "src/lib.rs"
+
+[[bin]]
+name = "signifiage"
+path = "src/main.rs"
+
+[[example]]
+name = "render_scene"
+path = "examples/render_scene.rs"
+
+[dependencies]
+gtk4 = { version = "0.11", features = ["v4_18"] }
+libadwaita = { version = "0.9", features = ["v1_6", "gtk_v4_18"] }
+gdk-pixbuf = "0.22"
+gstreamer = { version = "0.25", features = ["v1_22"] }
+gstreamer-video = { version = "0.25", features = ["v1_22"] }
+gstreamer-app = { version = "0.25", features = ["v1_22"] }
+ashpd = { version = "0.14", features = ["screencast", "remote_desktop"] }
+x11rb = { version = "0.14", features = ["xtest"] }
+axum = { version = "0.8", features = ["multipart"] }
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "macros",
+    "net",
+    "sync",
+    "time",
+    "fs",
+    "io-util",
+] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures-util = "0.3"
+calamine = "0.38"
+zip = { version = "9", default-features = false, features = ["deflate"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+rand = "0.9"
+rust-i18n = "4"
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dirs = "6"
+
+[profile.release]
+opt-level = 2
+debug = false

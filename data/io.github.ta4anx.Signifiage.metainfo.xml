@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.ta4anx.Signifiage</id>
+  <name>Signifiage</name>
+  <summary>Signage, stage playback and queue console</summary>
+  <summary xml:lang="tr">Tabela, sahne oynatımı ve sıra konsolu</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>
+      Signifiage designs signage and stage scenes, plays playlists of text, image,
+      video and capture sources on selected monitors, and keeps a called name queue
+      fed from spreadsheets or in-app entry.
+    </p>
+    <p>
+      It also runs as a standalone player on a signage PC and exposes a LAN web
+      remote for phones and tablets.
+    </p>
+    <ul>
+      <li>Independent program, preview and teleprompter outputs</li>
+      <li>Queue import from .xlsx, .xls and .ods with live additive sync</li>
+      <li>Soundboard, timers, schedules and deck control for presentation apps</li>
+      <li>Camera, X11 window and portal screen capture</li>
+      <li>English and Turkish interface</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.ta4anx.Signifiage.desktop</launchable>
+  <url type="homepage">https://github.com/ta4anx/signifiage</url>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Video</category>
+    <category>Utility</category>
+  </categories>
+  <provides>
+    <binary>signifiage</binary>
+  </provides>
+  <releases>
+    <release version="0.1.0" date="2026-11-17"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

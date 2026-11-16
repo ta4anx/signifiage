@@ -1,0 +1,642 @@
+app:
+  name: Signifiage
+  subtitle: Tabela ve Sahne Konsolu
+  window_title: Signifiage
+  quit: Çık
+  about: Signifiage Hakkında
+  save_status:
+    saved: Kaydedildi
+    unsaved: Kaydedilmemiş değişiklikler
+    saving: Kaydediliyor…
+    failed: Kaydedilemedi
+menu:
+  new: Yeni Proje…
+  open: Proje Aç…
+  save: Kaydet
+  publish: Yayınla…
+  settings: Tercihler
+  about: Signifiage Hakkında
+  quit: Çık
+  recent: Son projeler
+language:
+  system: Sistem varsayılanı
+  english: English
+  turkish: Türkçe
+  restart_required: Uygulamak için Signifiage'ı yeniden başlatın
+page:
+  design: Tasarım
+  run: Oynat
+  queue: Sıra
+  prompter: Prompter
+  soundboard: Ses paneli
+  settings: Tercihler
+common:
+  cancel: Vazgeç
+  confirm: Onayla
+  save: Kaydet
+  close: Kapat
+  add: Ekle
+  remove: Kaldır
+  delete: Sil
+  edit: Düzenle
+  search: Ara
+  refresh: Yenile
+  copy: Kopyala
+  regenerate: Yeniden üret
+  open: Aç
+  apply: Uygula
+  none: Yok
+  all: Tümü
+  unidentified: Tanımsız
+welcome:
+  title: Signifiage'a hoş geldiniz
+  no_project: Başlamak için bir proje açın veya oluşturun.
+  new_project: Yeni Proje
+  open_project: Proje Aç
+  recent: Son projeler
+  no_recent: Henüz son proje yok.
+project:
+  untitled: Adsız proje
+  untitled_playlist: Oynatma listesi
+  save_status:
+    failed: Kaydedilemedi
+  warning:
+    bad_assets: Proje klasörü dışındaki %{count} varlık referansı kaldırıldı.
+    dropped_playlist_items: Sahnesi artık bulunmayan %{count} oynatma listesi öğesi kaldırıldı.
+    no_playlists: Oynatma listesi bulunamadı; yeni bir tane oluşturuldu.
+    dropped_schedules: Eksik oynatma listesi veya geçersiz zaman aralığı olan %{count} program kaldırıldı.
+    backup_used: project.json okunamadı; yedek kopya geri yüklendi.
+  error:
+    backup_failed: 've kullanılabilir yedek yok: %{error}'
+    missing_json: '%{path} bulunmuyor'
+    directory_not_empty: '%{path} boş değil. Boş veya yeni bir klasör seçin.'
+    save_failed: 'Proje kaydedilemedi: %{error}'
+    open_failed: 'Proje açılamadı: %{error}'
+    not_a_project: '%{path} bir proje klasörü değil'
+package:
+  error:
+    too_many_entries: Pakette %{count} öğe var; sınır 10000.
+    unsafe_entry: 'Pakette güvenli olmayan bir yol var: %{name}'
+    entry_too_large: 'Paket öğesi 4 GiB''den büyük: %{name}'
+    symlink_entry: 'Pakette sembolik bağlantı öğesi var: %{name}'
+    no_project_json: Pakette project.json yok.
+    extract_failed: 'Paket çıkarılamadı: %{error}'
+layer:
+  type:
+    text: Metin
+    clock: Saat
+    timer: Sayaç
+    eta: Bitiş
+    image: Görsel
+    video: Video
+    capture: Yakalama
+    queue: Sıra
+    ticker: Kayan yazı
+    pattern: Desen
+  eta:
+    default_label: Bitiş saati
+  image:
+    no_asset: Görsel seçilmedi
+  video:
+    no_asset: Video seçilmedi
+pattern:
+  grid: Izgara
+  zebra: Zebra
+  colorbars: Renk çubukları
+  focus: Odak
+  resume: Programa dön
+capture:
+  unset: Kaynak seçilmedi
+  type:
+    camera: Kamera
+    x11_window: X11 penceresi
+    portal: Ekran
+  device: Aygıt
+  advanced: Gelişmiş
+  width: Genişlik
+  height: Yükseklik
+  fps: Kare hızı
+  test: Dene…
+  test_window: Yakalama testi
+  pick_window: Pencere seç…
+  pick_window_title: X11 pencereleri
+  choose_screen: Ekran seç…
+  refresh: Yenile
+  mirror: Aynala
+  hint_camera: Bir kamera aygıtı seçin; boyut alanlarını aygıt varsayılanı için boş bırakın.
+  hint_x11: X11 pencereleri $DISPLAY üzerinden listelenir (X11 ve XWayland'de çalışır).
+  hint_portal: Ekran yakalama, masaüstü portalı üzerinden izin ister.
+  error:
+    no_display: Kullanılabilir X11 ekranı yok.
+    no_device: Yakalama aygıtı bulunamadı.
+    portal_unavailable: Ekran yakalama için xdg-desktop-portal gerekir.
+    cancelled: Ekran yakalama iptal edildi.
+    portal_pending: Ekran yakalama izin bekliyor.
+  x11_empty: X11 penceresi bulunamadı.
+  x11_error: 'X11 pencereleri listelenemiyor: %{message}'
+  x11_title: X11 pencereleri
+queue:
+  default_title: Şimdi çağrılıyor
+  display_empty: İlk çağrı bekleniyor
+  status:
+    waiting: Bekliyor
+    called: Çağrıldı
+    done: Tamamlandı
+    skipped: Atlandı
+  next: Sıradaki
+  recall: Tekrar çağır
+  done: Tamamla
+  skip: Atla
+  undo: Geri al
+  add: Ekle
+  edit: Düzenle
+  remove: Kaldır
+  import: İçe aktar…
+  reload: Kaynağı yenile
+  source: Kaynak
+  no_source: Bağlı elektronik tablo yok
+  last_sync: 'Son eşitleme: %{time}'
+  synced_now: az önce
+  search_placeholder: İsim, numara veya not ara
+  no_current: Kimse çağrılmadı
+  no_waiting: Bekleyen yok
+  stats: '%{waiting} bekliyor · %{called} çağrıldı · %{done} tamamlandı · %{skipped} atlandı'
+  rows_empty: Henüz satır yok.
+  name: Ad
+  ticket: Numara
+  note: Not
+  status_label: Durum
+  ticket_placeholder: Otomatik
+  add_title: Sıraya ekle
+  edit_title: Sıra satırını düzenle
+  remove_confirm: '%{name} sıradan kaldırılsın mı?'
+  call: Çağır
+  toast:
+    nobody_waiting: Bekleyen kimse yok.
+    no_current: Çağrılan kimse yok.
+    added: Sıraya eklendi.
+    removed: Satır kaldırıldı.
+    duplicate_ticket: Bu numara zaten kullanılıyor.
+    name_required: Ad zorunludur.
+    imported: '%{added} yeni satır eklendi, %{updated} satır güncellendi.'
+    scene_created: Sıra sahnesi oluşturuldu ve oynatma listesine eklendi.
+    not_waiting: Yalnızca bekleyen satırlar çağrılabilir.
+    nothing_new: Elektronik tabloda yeni satır yok.
+    nothing_to_undo: Geri alınacak işlem yok.
+  wizard:
+    title: Elektronik tablodan sıra içe aktar
+    file: Elektronik tablo
+    choose_file: Dosya seç…
+    sheet: Sayfa
+    header_row: Başlık satırı
+    preview: Önizleme
+    mapping: Sütun eşlemesi
+    name_column: Ad sütunu (zorunlu)
+    ticket_column: Numara sütunu
+    note_column: Not sütunu
+    status_column: Durum sütunu
+    not_mapped: Eşlenmedi
+    import: İçe aktar
+    no_file: Bir .xlsx, .xls veya .ods dosyası seçin.
+    no_sheet: Çalışma kitabında sayfa yok.
+    no_name_column: İçe aktarmak için ad sütununu eşleyin.
+    rename_note: Numara sütunu eşlenmezse adı değişen kişi yeni satır olur.
+    read_failed: 'Çalışma kitabı okunamıyor: %{message}'
+    reading: Okunuyor…
+  display_title: Şimdi çağrılıyor
+  reading: Elektronik tablo okunuyor…
+  source_error: 'Elektronik tablo okunamıyor: %{message}'
+  sync_never: hiç
+soundboard:
+  pad_prefix: Tuş
+  page_prefix: Sayfa
+  dock: Ses paneli
+  dock_tooltip: Ses paneli (S)
+  add_page: Sayfa ekle
+  remove_page: Sayfayı kaldır
+  stop_all: Tümünü durdur
+  edit_pad: Tuşu düzenle
+  label: Etiket
+  color: Renk
+  colour: Renk
+  volume: Ses düzeyi
+  loop: Döngü
+  asset: Ses dosyası
+  hotkey: Kısayol
+  hotkey_none: Kısayol yok
+  hotkey_taken: Bu kısayol başka bir tuşta kullanılıyor.
+  playing: Çalıyor
+  unarmed: Ses dosyası yok
+  empty_page: Bu sayfada henüz tuş yok.
+  master_muted: Ana ses kapalı
+  asset_missing: Ses dosyası bulunamadı.
+  audio_filter: Ses dosyaları
+  cancel: Vazgeç
+  import: İçe aktar…
+  import_failed_title: İçe aktarma başarısız
+  import_title: Ses içe aktar
+  imported: Ses dosyası içe aktarıldı.
+  last_page: Son sayfa kaldırılamaz.
+  master_mute: Ses panelini sessize al
+  muted: Ses paneli sessiz
+  no_asset: Ses dosyası seçilmedi.
+  no_hotkey: Kısayol yok
+  no_project: Ses panelini kullanmak için bir proje açın.
+  pad_asset: Ses dosyası
+  pad_color: Tuş rengi
+  pad_hotkey: Kısayol
+  pad_label: Tuş etiketi
+  pad_loop: Tuşu döngüde çal
+  pad_tooltip: Çalmak için tıkla, değiştirmek için düzenle
+  pad_unarmed: Ses dosyası seçmek için tıkla
+  pad_volume: Ses düzeyi
+  play_failed: 'Bu tuş çalınamıyor: %{message}'
+  save: Kaydet
+  stop_all_tooltip: Çalan tüm tuşları durdur
+schedule:
+  mon: Pzt
+  tue: Sal
+  wed: Çar
+  thu: Per
+  fri: Cum
+  sat: Cmt
+  sun: Paz
+  title: Programlar
+  edit: Programlar…
+  add: Program ekle
+  remove: Kaldır
+  from: başlangıç
+  to: bitiş
+  invalid: SS:DD biçiminde girin; bitiş saati başlangıçtan sonra olmalı.
+  no_days: En az bir gün seçin.
+  fix_errors: Önce işaretli program satırlarını düzeltin.
+  hint: Programlar oynatıcıda değerlendirilir; ilk eşleşen kazanır.
+show:
+  go: Yayına al
+  prev: Önceki
+  black: Karart
+  freeze: Dondur
+  mute: Sessiz
+  on_air: YAYINDA
+  patterns: Desenler
+  auto: Otomatik
+  auto_advance: Otomatik geçiş
+  auto_advance_hint: Otomatik geçiş yalnızca süreli oynatma listesi öğelerinde çalışır.
+  loop: Döngü
+  shortcuts_hint: Boşluk yayına al · Geri önceki · B karart · F dondur · M sessiz
+  untitled_scene: Adsız sahne
+  no_preview_item: Yayına alınacak öğe yok.
+  no_previous_item: Önceki öğe yok.
+  freeze_unavailable: Dondurmak için görünür bir program çıkışı gerekir.
+  source:
+    black: boş
+    playlist: oynatma listesi
+    manual: elle
+    pattern: desen
+run:
+  playlist: Oynatma listesi
+  timers: Sayaçlar
+  edit_timers: Sayaçları düzenle…
+  queue: Sıra
+  next_marker: SIRADAKİ
+timer:
+  start: Başlat
+  pause: Duraklat
+  reset: Sıfırla
+  elapsed: Geçen süre
+  remaining: Kalan
+  end_at: Bitiş
+timers:
+  title: Sayaçlar
+  add: Sayaç ekle
+  new_name: Sayaç
+  duration_placeholder: Süre (sn)
+  duration_hint: Yukarı sayan sayaç için süreyi boş bırakın.
+  remove: Sayacı kaldır
+  removed: Sayaç kaldırıldı.
+deck:
+  title: Sunum kumandası
+  backend: Arka uç
+  hint: Sunum penceresine odaklanın, sonra İleri/Geri kullanın.
+  next: Sonraki slayt
+  prev: Önceki slayt
+  last_error: Kumanda hatası
+  unavailable: Burada sunum kumandası kullanılamıyor.
+  key:
+    right: Sağ ok
+    left: Sol ok
+    pagedown: Sayfa Aşağı
+    pageup: Sayfa Yukarı
+    down: Aşağı ok
+    up: Yukarı ok
+    space: Boşluk
+    f5: F5
+design:
+  add_layer: Katman ekle
+  zoom: Yakınlaştırma
+  grid: Izgara
+  safe_area: Güvenli alan
+  live: Canlı
+  live_tooltip: Yayındaki sahnenin düzenlemelerini doğrudan programa gönder
+  take: Yayına al
+  taken: 'Yayına alındı: %{name}'
+  scenes: Sahneler
+  playlist: Oynatma listesi
+  assets: Varlıklar
+zoom:
+  fit: Sığdır
+scene:
+  add: Sahne ekle
+  duplicate: Sahneyi çoğalt
+  delete: Sahneyi sil
+  move_up: Sahneyi yukarı taşı
+  move_down: Sahneyi aşağı taşı
+  copy_suffix: kopya
+  missing: Eksik sahne
+  deleted: Sahne silindi.
+  delete_confirm: “%{name}” silinsin mi? Tüm oynatma listelerinden kaldırılır.
+  new_name: Sahne
+playlist:
+  new: Yeni oynatma listesi
+  new_name: Oynatma listesi
+  rename: Oynatma listesini yeniden adlandır
+  delete: Oynatma listesini sil
+  make_default: Oynatıcı varsayılanı yap
+  active: Etkin oynatma listesi
+  add_scene: Geçerli sahneyi ekle
+  add_videos: Video ekle…
+  remove_item: Öğeyi kaldır
+  move_up: Öğeyi yukarı taşı
+  move_down: Öğeyi aşağı taşı
+  duration: Süre (sn)
+  default_set: Bu oynatma listesi artık oynatıcı varsayılanı.
+  item_added: Sahne oynatma listesine eklendi.
+  last_blocked: Son oynatma listesi silinemez.
+  videos_added: '%{count} video sahnesi eklendi.'
+assets:
+  import: İçe aktar…
+  reveal: Klasörü aç
+  remove: Kaldır
+  empty: Henüz varlık yok.
+  imported: '%{count} dosya içe aktarıldı.'
+  skipped: '%{count} desteklenmeyen dosya atlandı.'
+  in_use: Varlık bir katman veya tuş tarafından kullanılıyor.
+  removed: Varlık silindi.
+  remove_confirm: '%{name} projeden silinsin mi?'
+  select_first: Önce bir varlık seçin.
+new_project:
+  title: Yeni Proje
+  default_name: Yeni Gösteri
+  name: Proje adı
+  template: Şablon
+  parent_folder: Üst klasör
+  no_folder: Klasör seçilmedi
+  choose_folder: Klasör seç…
+  create: Oluştur
+  folder_required: Önce bir üst klasör seçin.
+template:
+  stage_show:
+    name: Sahne gösterisi
+    description: Saatli karşılama başlığı ve sunum penceresini yakalayan bir sahne.
+  signage_loop:
+    name: Tabela döngüsü
+    description: Döngüde karşılama slaytı ve büyük saatli kayan duyuru yazısı.
+  queue_board:
+    name: Sıra panosu
+    description: Elektronik tablo içe aktarmaya hazır tam ekran isim panosu.
+  blank:
+    name: Boş
+    description: Bir boş sahne ve bir oynatma listesi.
+  scene:
+    welcome: Karşılama
+    deck: Sunum
+    announcements: Duyurular
+    queue: Sıra
+    scene1: Sahne 1
+  playlist:
+    show: Gösteri
+    loop: Döngü
+    main: Ana
+    queue: Sıra
+  timers:
+    show: Gösteri
+    speaker: Konuşmacı
+  stage:
+    welcome_text: Hoş geldiniz
+  deck:
+    capture: Sunum yakalama
+  signage:
+    ticker_text: Hoş geldiniz — duyurular burada kayar.
+  prompter:
+    sample: 'Sahneye hoş geldiniz. Bu metin bir yer tutucudur: metni kendi metninizle değiştirin ve Prompter sayfasında Başlat''a basın.'
+publish:
+  title: Paket yayınla
+  done: '%{path} yayınlandı'
+  error:
+    not_a_project: '%{path} bir proje klasörü değil'
+outputs:
+  program: Program
+  preview: Önizleme
+  prompter: Prompter
+  inhibit_reason: Signifiage çıkışları yayında
+inspector:
+  title: Denetçi
+  scene: Sahne
+  layer: Katman
+  no_selection: Düzenlemek için bir katman seçin.
+  name: Ad
+  position: Konum ve boyut
+  x: X
+  y: Y
+  width: Genişlik
+  height: Yükseklik
+  opacity: Saydamlık
+  visible: Görünür
+  background: Arka plan
+  padding: İç boşluk
+  text: Metin
+  fit: Sığdırma
+  loop: Döngü
+  volume: Ses
+  mirror: Aynala
+  upcoming: Sıradaki satırlar
+  show_ticket: Numarayı göster
+  show_note: Notu göster
+  accent: Vurgu rengi
+  speed: Hız (px/sn)
+  gap: Boşluk (px)
+  preset: Biçim
+  show_date: Tarihi göster
+  mode: Mod
+  warning_color: Fazla süre rengi
+  timer: Sayaç
+  label: Etiket
+  pattern: Desen
+  colour: Renk
+  color: Renk
+  source: Kaynak
+  style: Biçim
+  family: Yazı tipi
+  size: Boyut
+  bold: Kalın
+  italic: İtalik
+  align: Hizalama
+  line_spacing: Satır aralığı
+  uppercase: Büyük harf
+  import: İçe aktar…
+  device: Aygıt
+  window_title: Pencere başlığı
+  window_class: Pencere sınıfı
+  xid: Pencere kimliği
+  advance_on_media_end: Medya bitince ilerle
+  align_left: Sol
+  align_center: Orta
+  align_right: Sağ
+  preset_24h: 24 saat
+  preset_24h_seconds: 24 saat (saniyeli)
+  preset_12h: 12 saat
+  preset_12h_seconds: 12 saat (saniyeli)
+  mode_elapsed: Geçen süre
+  mode_remaining: Kalan
+  mode_end_at: Bitiş saati
+  fit_contain: Sığdır
+  fit_cover: Kapla
+  fit_stretch: Uzat
+  asset: Varlık
+  asset_missing: Seçilen dosya bulunamadı.
+  asset_none: Dosya seçilmedi
+  capture_advanced: Gelişmiş
+  capture_fps: Kare hızı
+  capture_pick: Seç…
+  capture_test: Dene…
+  label_hint: Yerelleştirilmiş varsayılan için boş bırakın.
+  queue_empty: Boş metin
+  queue_title: Başlık
+  timer_count_up: Yukarı sayan
+  timer_missing: Seçilen sayaç artık yok.
+  timer_none: Tanımlı sayaç yok
+prompter:
+  title: Prompter
+  script: Metin
+  start: Başlat
+  pause: Duraklat
+  reset: Sıfırla
+  speed: Hız
+  font_size: Yazı boyutu
+  family: Yazı tipi
+  line_spacing: Satır aralığı
+  width_pct: Metin genişliği (%)
+  mirror_h: Yatay aynala
+  mirror_v: Dikey aynala
+  open_output: Prompter penceresini aç
+  no_script: Metin yok
+  assignment: Çıkış
+  assigned_to: '%{monitor} üzerinde tam ekran'
+  unassigned: Monitör atanmadı — pencerede açılır
+  preview: Önizleme
+  no_outputs: Metni ekranda görmek için bir prompter penceresi açın.
+settings:
+  title: Tercihler
+  section:
+    about: Hakkında
+    appearance: Görünüm
+    audio: Ses
+    capture: Yakalama
+    displays: Ekranlar
+    project: Proje
+    remote: Kumanda
+  about:
+    adwaita: libadwaita
+    gstreamer: GStreamer
+    gtk: GTK
+    license: GPL-3.0-or-later
+    version: Sürüm %{version}
+  appearance:
+    language: Dil
+    theme: Tema
+    theme_dark: Koyu
+    theme_light: Açık
+    theme_system: Sistemi izle
+  audio:
+    actions: İşlemler
+    default: Sistem varsayılanı
+    fallback: Kayıtlı çıkış aygıtı bulunamadı; sistem varsayılanı kullanılıyor.
+    no_devices: Ses çıkış aygıtı bulunamadı.
+    refresh: Yenile
+    sink: Çıkış aygıtı
+    sink_hint: Değişiklik bir sonraki medya dosyası başladığında geçerli olur.
+    test_failed: 'Test sesi çalınamadı: %{message}'
+    test_ok: Test sesi çalındı.
+    test_tone: Test sesi
+  capture:
+    auto: Otomatik (X11 üzerinde X11, Wayland üzerinde portal)
+    backend: Arka uç
+    hint: X11 pencere yakalama bir X ekranı gerektirir; ekran yakalama masaüstü portalını kullanır.
+    portal: Masaüstü portalı
+    x11: X11 pencereleri
+  displays:
+    operator: Operatör konsolu
+    operator_desktop: Masaüstü varsayılanı
+    preview: Önizleme çıkışı
+    program: Program çıkışı
+    prompter: Prompter çıkışı
+    unassigned: Atanmadı
+    windowed: Tüm çıkışları 960×540 pencerede aç
+    windowed_hint: Tüm çıkışlar için monitör atamasını ve tam ekranı geçersiz kılar.
+  error:
+    save: 'Tercihler kaydedilemedi: %{message}'
+  project:
+    grid: Izgara aralığı (px)
+    height: Yükseklik
+    no_project: Tasarım ayarlarını değiştirmek için bir proje açın.
+    preset: Çözünürlük
+    preset_custom: Özel
+    preset_fhd: 1920 × 1080
+    preset_portrait: 1080 × 1920
+    preset_uhd: 3840 × 2160
+    rotation: Döndürme
+    safe_area: Güvenli alan
+    scale:
+      fit: Sığdır
+      fill: Kapla
+      stretch: Uzat
+    scale_fill: Kapla
+    scale_fit: Sığdır
+    scale_stretch: Uzat
+    width: Genişlik
+    preset.custom: Özel
+    preset.fhd: 1920 × 1080
+    preset.portrait: 1080 × 1920
+    preset.uhd: 3840 × 2160
+    preset_label: Çözünürlük
+    scale_label: Çıkış ölçeği
+  remote:
+    copied: Jeton kopyalandı.
+    copy: Kopyala
+    enabled: Web kumandasını etkinleştir
+    lan: Yerel ağ adresi
+    local: Bu makine
+    no_lan: Yerel ağ adresi bulunamadı
+    port: Bağlantı noktası
+    regenerate: Yeniden üret
+    state: Durum
+    state_off: Kapalı
+    state_on: Dinliyor
+    token: Jeton
+    token_actions: Jeton işlemleri
+    warning: Yerel ağda düz HTTP — jetonu bilen herkes gösteriyi kontrol edebilir.
+player:
+  window:
+    title: Signifiage oynatıcı
+  error:
+    missing_project: '%{path} açılamıyor: %{error}'
+    unsupported_path: '%{path} ne bir proje klasörü ne de bir paket'
+    extract: '%{path} çıkarılamıyor: %{error}'
+    invalid_project: '%{path} yüklenemiyor: %{error}'
+    no_display: 'Ekran açılamıyor: %{error}'
+    no_playlist: '%{project} projesinde oynatılabilir liste yok'
+  remote:
+    ready: Web kumandası %{url} adresinde dinliyor — jeton %{token}
+    no_token: 'Web kumandası başlatılmadı: %{port} için jeton yok'
+    failed: 'Web kumandası %{port} portunda başlatılamadı: %{error}'
+  quit_hint: Çıkmak için Ctrl+Q

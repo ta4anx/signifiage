@@ -1,0 +1,642 @@
+app:
+  name: Signifiage
+  subtitle: Signage & Stage Console
+  window_title: Signifiage
+  quit: Quit
+  about: About Signifiage
+  save_status:
+    saved: Saved
+    unsaved: Unsaved changes
+    saving: Saving…
+    failed: Save failed
+menu:
+  new: New Project…
+  open: Open Project…
+  save: Save
+  publish: Publish…
+  settings: Preferences
+  about: About Signifiage
+  quit: Quit
+  recent: Recent projects
+language:
+  system: System default
+  english: English
+  turkish: Türkçe
+  restart_required: Restart Signifiage to apply
+page:
+  design: Design
+  run: Run
+  queue: Queue
+  prompter: Prompter
+  soundboard: Soundboard
+  settings: Preferences
+common:
+  cancel: Cancel
+  confirm: Confirm
+  save: Save
+  close: Close
+  add: Add
+  remove: Remove
+  delete: Delete
+  edit: Edit
+  search: Search
+  refresh: Refresh
+  copy: Copy
+  regenerate: Regenerate
+  open: Open
+  apply: Apply
+  none: None
+  all: All
+  unidentified: Unidentified
+welcome:
+  title: Welcome to Signifiage
+  no_project: Open or create a project to begin.
+  new_project: New Project
+  open_project: Open Project
+  recent: Recent projects
+  no_recent: No recent projects yet.
+project:
+  untitled: Untitled project
+  untitled_playlist: Playlist
+  save_status:
+    failed: Save failed
+  warning:
+    bad_assets: Dropped %{count} asset reference(s) outside the project folder.
+    dropped_playlist_items: Dropped %{count} playlist item(s) whose scene no longer exists.
+    no_playlists: No playlist was found; created one.
+    dropped_schedules: Dropped %{count} schedule(s) with a missing playlist or invalid time window.
+    backup_used: project.json was unreadable; restored the backup copy.
+  error:
+    backup_failed: 'and no usable backup: %{error}'
+    missing_json: '%{path} does not exist'
+    directory_not_empty: '%{path} is not empty. Choose an empty folder or a new one.'
+    save_failed: 'Could not save the project: %{error}'
+    open_failed: 'Could not open the project: %{error}'
+    not_a_project: '%{path} is not a project directory'
+package:
+  error:
+    too_many_entries: Package has %{count} entries; the limit is 10000.
+    unsafe_entry: 'The package contains an unsafe path: %{name}'
+    entry_too_large: 'The package entry is larger than 4 GiB: %{name}'
+    symlink_entry: 'The package contains a symlink entry: %{name}'
+    no_project_json: The package has no project.json.
+    extract_failed: 'Could not extract the package: %{error}'
+layer:
+  type:
+    text: Text
+    clock: Clock
+    timer: Timer
+    eta: ETA
+    image: Image
+    video: Video
+    capture: Capture
+    queue: Queue
+    ticker: Ticker
+    pattern: Pattern
+  eta:
+    default_label: Ends at
+  image:
+    no_asset: No image selected
+  video:
+    no_asset: No video selected
+pattern:
+  grid: Grid
+  zebra: Zebra
+  colorbars: Colour bars
+  focus: Focus
+  resume: Resume program
+capture:
+  unset: No source selected
+  type:
+    camera: Camera
+    x11_window: X11 window
+    portal: Screen
+  device: Device
+  advanced: Advanced
+  width: Width
+  height: Height
+  fps: Frame rate
+  test: Test…
+  test_window: Capture test
+  pick_window: Pick window…
+  pick_window_title: X11 windows
+  choose_screen: Choose screen…
+  refresh: Refresh
+  mirror: Mirror
+  hint_camera: Choose a camera device; leave size fields empty for device defaults.
+  hint_x11: X11 windows are listed from $DISPLAY (works on X11 and XWayland).
+  hint_portal: Screen capture asks for permission through the desktop portal.
+  error:
+    no_display: No X11 display is available.
+    no_device: No capture device found.
+    portal_unavailable: Screen capture needs xdg-desktop-portal.
+    cancelled: Screen capture was cancelled.
+    portal_pending: Screen capture is waiting for permission.
+  x11_empty: No X11 windows found.
+  x11_error: 'Cannot list X11 windows: %{message}'
+  x11_title: X11 windows
+queue:
+  default_title: Now calling
+  display_empty: Waiting for the first call
+  status:
+    waiting: Waiting
+    called: Called
+    done: Done
+    skipped: Skipped
+  next: Next
+  recall: Recall
+  done: Done
+  skip: Skip
+  undo: Undo
+  add: Add
+  edit: Edit
+  remove: Remove
+  import: Import…
+  reload: Reload source
+  source: Source
+  no_source: No spreadsheet linked
+  last_sync: 'Last sync: %{time}'
+  synced_now: just now
+  search_placeholder: Search name, ticket or note
+  no_current: No one is called
+  no_waiting: Nobody is waiting
+  stats: '%{waiting} waiting · %{called} called · %{done} done · %{skipped} skipped'
+  rows_empty: No rows yet.
+  name: Name
+  ticket: Ticket
+  note: Note
+  status_label: Status
+  ticket_placeholder: Auto
+  add_title: Add to queue
+  edit_title: Edit queue row
+  remove_confirm: Remove %{name} from the queue?
+  call: Call
+  toast:
+    nobody_waiting: No one is waiting.
+    no_current: Nobody is called.
+    added: Added to the queue.
+    removed: Row removed.
+    duplicate_ticket: That ticket is already used.
+    name_required: A name is required.
+    imported: Imported %{added} new and refreshed %{updated} row(s).
+    scene_created: Queue scene created and added to the playlist.
+    not_waiting: Only waiting rows can be called.
+    nothing_new: No new rows in the spreadsheet.
+    nothing_to_undo: Nothing to undo.
+  wizard:
+    title: Import queue from spreadsheet
+    file: Spreadsheet
+    choose_file: Choose file…
+    sheet: Sheet
+    header_row: Header row
+    preview: Preview
+    mapping: Column mapping
+    name_column: Name column (required)
+    ticket_column: Ticket column
+    note_column: Note column
+    status_column: Status column
+    not_mapped: Not mapped
+    import: Import
+    no_file: Choose an .xlsx, .xls or .ods file.
+    no_sheet: The workbook has no sheets.
+    no_name_column: Map a name column to import.
+    rename_note: Without a ticket column, a renamed person becomes a new row.
+    read_failed: 'Cannot read the workbook: %{message}'
+    reading: Reading…
+  display_title: Now calling
+  reading: Reading the spreadsheet…
+  source_error: 'Cannot read the spreadsheet: %{message}'
+  sync_never: never
+soundboard:
+  pad_prefix: Pad
+  page_prefix: Page
+  dock: Soundboard
+  dock_tooltip: Soundboard dock (S)
+  add_page: Add page
+  remove_page: Remove page
+  stop_all: Stop all
+  edit_pad: Edit pad
+  label: Label
+  color: Colour
+  colour: Colour
+  volume: Volume
+  loop: Loop
+  asset: Audio file
+  hotkey: Hotkey
+  hotkey_none: No hotkey
+  hotkey_taken: That hotkey is already used by another pad.
+  playing: Playing
+  unarmed: No audio file
+  empty_page: This page has no pads yet.
+  master_muted: Master mute is on
+  asset_missing: The audio file is missing.
+  audio_filter: Audio files
+  cancel: Cancel
+  import: Import…
+  import_failed_title: Import failed
+  import_title: Import audio
+  imported: Audio file imported.
+  last_page: The last page cannot be removed.
+  master_mute: Mute the soundboard
+  muted: Soundboard muted
+  no_asset: No audio file selected.
+  no_hotkey: No hotkey
+  no_project: Open a project to use the soundboard.
+  pad_asset: Audio file
+  pad_color: Pad colour
+  pad_hotkey: Hotkey
+  pad_label: Pad label
+  pad_loop: Loop the pad
+  pad_tooltip: Click to play, edit to change
+  pad_unarmed: Click to choose an audio file
+  pad_volume: Volume
+  play_failed: 'Cannot play this pad: %{message}'
+  save: Save
+  stop_all_tooltip: Stop every playing pad
+schedule:
+  mon: Mon
+  tue: Tue
+  wed: Wed
+  thu: Thu
+  fri: Fri
+  sat: Sat
+  sun: Sun
+  title: Schedules
+  edit: Schedules…
+  add: Add schedule
+  remove: Remove
+  from: from
+  to: to
+  invalid: Use HH:MM with an end time after the start time.
+  no_days: Select at least one day.
+  fix_errors: Fix the highlighted schedule rows first.
+  hint: Schedules are evaluated by the player, first match wins.
+show:
+  go: Go
+  prev: Previous
+  black: Black
+  freeze: Freeze
+  mute: Mute
+  on_air: ON AIR
+  patterns: Patterns
+  auto: Auto
+  auto_advance: Auto-advance
+  auto_advance_hint: Auto-advance applies to playlist items with a duration.
+  loop: Loop
+  shortcuts_hint: Space go · Backspace prev · B black · F freeze · M mute
+  untitled_scene: Untitled scene
+  no_preview_item: Nothing to take to air.
+  no_previous_item: No previous item.
+  freeze_unavailable: Freezing needs a visible program output.
+  source:
+    black: black
+    playlist: playlist
+    manual: manual
+    pattern: pattern
+run:
+  playlist: Playlist
+  timers: Timers
+  edit_timers: Edit timers…
+  queue: Queue
+  next_marker: NEXT
+timer:
+  start: Start
+  pause: Pause
+  reset: Reset
+  elapsed: Elapsed
+  remaining: Remaining
+  end_at: Ends at
+timers:
+  title: Timers
+  add: Add timer
+  new_name: Timer
+  duration_placeholder: Duration (s)
+  duration_hint: Leave the duration empty for a count-up timer.
+  remove: Remove timer
+  removed: Timer removed.
+deck:
+  title: Deck control
+  backend: Backend
+  hint: Focus the presentation window, then use Next/Previous.
+  next: Next slide
+  prev: Previous slide
+  last_error: Deck error
+  unavailable: Deck control is unavailable here.
+  key:
+    right: Right arrow
+    left: Left arrow
+    pagedown: Page Down
+    pageup: Page Up
+    down: Down arrow
+    up: Up arrow
+    space: Space
+    f5: F5
+design:
+  add_layer: Add layer
+  zoom: Zoom
+  grid: Grid
+  safe_area: Safe area
+  live: Live
+  live_tooltip: Push edits of the on-air scene straight to program
+  take: Take
+  taken: 'Taken to air: %{name}'
+  scenes: Scenes
+  playlist: Playlist
+  assets: Assets
+zoom:
+  fit: Fit
+scene:
+  add: Add scene
+  duplicate: Duplicate scene
+  delete: Delete scene
+  move_up: Move scene up
+  move_down: Move scene down
+  copy_suffix: copy
+  missing: Missing scene
+  deleted: Scene deleted.
+  delete_confirm: Delete “%{name}”? It is removed from every playlist.
+  new_name: Scene
+playlist:
+  new: New playlist
+  new_name: Playlist
+  rename: Rename playlist
+  delete: Delete playlist
+  make_default: Make the player default
+  active: Active playlist
+  add_scene: Add current scene
+  add_videos: Add videos…
+  remove_item: Remove item
+  move_up: Move item up
+  move_down: Move item down
+  duration: Duration (s)
+  default_set: This playlist is now the player default.
+  item_added: Scene added to the playlist.
+  last_blocked: The last playlist cannot be deleted.
+  videos_added: Added %{count} video scene(s).
+assets:
+  import: Import…
+  reveal: Open folder
+  remove: Remove
+  empty: No assets yet.
+  imported: Imported %{count} file(s).
+  skipped: Skipped %{count} unsupported file(s).
+  in_use: The asset is used by a layer or pad.
+  removed: Asset removed.
+  remove_confirm: Delete %{name} from the project?
+  select_first: Select an asset first.
+new_project:
+  title: New Project
+  default_name: New Show
+  name: Project name
+  template: Template
+  parent_folder: Parent folder
+  no_folder: No folder chosen
+  choose_folder: Choose folder…
+  create: Create
+  folder_required: Choose a parent folder first.
+template:
+  stage_show:
+    name: Stage show
+    description: Welcome title with a clock and a deck scene that captures a presentation window.
+  signage_loop:
+    name: Signage loop
+    description: Looping welcome slide and an announcements ticker with a large clock.
+  queue_board:
+    name: Queue board
+    description: A full-screen called-name board ready for spreadsheet import.
+  blank:
+    name: Blank
+    description: One empty scene and one playlist.
+  scene:
+    welcome: Welcome
+    deck: Deck
+    announcements: Announcements
+    queue: Queue
+    scene1: Scene 1
+  playlist:
+    show: Show
+    loop: Loop
+    main: Main
+    queue: Queue
+  timers:
+    show: Show
+    speaker: Speaker
+  stage:
+    welcome_text: Welcome
+  deck:
+    capture: Presentation capture
+  signage:
+    ticker_text: Welcome — announcements scroll here.
+  prompter:
+    sample: 'Welcome to the stage. This text is a placeholder: replace it with your script, then press Start on the Prompter page.'
+publish:
+  title: Publish package
+  done: Published %{path}
+  error:
+    not_a_project: '%{path} is not a project directory'
+outputs:
+  program: Program
+  preview: Preview
+  prompter: Prompter
+  inhibit_reason: Signifiage outputs are on air
+inspector:
+  title: Inspector
+  scene: Scene
+  layer: Layer
+  no_selection: Select a layer to edit it.
+  name: Name
+  position: Position and size
+  x: X
+  y: Y
+  width: Width
+  height: Height
+  opacity: Opacity
+  visible: Visible
+  background: Background
+  padding: Padding
+  text: Text
+  fit: Fit
+  loop: Loop
+  volume: Volume
+  mirror: Mirror
+  upcoming: Upcoming rows
+  show_ticket: Show ticket
+  show_note: Show note
+  accent: Accent colour
+  speed: Speed (px/s)
+  gap: Gap (px)
+  preset: Format
+  show_date: Show date
+  mode: Mode
+  warning_color: Overtime colour
+  timer: Timer
+  label: Label
+  pattern: Pattern
+  colour: Colour
+  color: Colour
+  source: Source
+  style: Style
+  family: Font
+  size: Size
+  bold: Bold
+  italic: Italic
+  align: Alignment
+  line_spacing: Line spacing
+  uppercase: Uppercase
+  import: Import…
+  device: Device
+  window_title: Window title
+  window_class: Window class
+  xid: Window id
+  advance_on_media_end: Advance on media end
+  align_left: Left
+  align_center: Center
+  align_right: Right
+  preset_24h: 24-hour
+  preset_24h_seconds: 24-hour with seconds
+  preset_12h: 12-hour
+  preset_12h_seconds: 12-hour with seconds
+  mode_elapsed: Elapsed
+  mode_remaining: Remaining
+  mode_end_at: Ends at
+  fit_contain: Contain
+  fit_cover: Cover
+  fit_stretch: Stretch
+  asset: Asset
+  asset_missing: The selected file is missing.
+  asset_none: No file selected
+  capture_advanced: Advanced
+  capture_fps: Frame rate
+  capture_pick: Pick…
+  capture_test: Test…
+  label_hint: Leave empty for the localised default.
+  queue_empty: Empty text
+  queue_title: Title
+  timer_count_up: Count-up timer
+  timer_missing: The selected timer no longer exists.
+  timer_none: No timers defined
+prompter:
+  title: Prompter
+  script: Script
+  start: Start
+  pause: Pause
+  reset: Reset
+  speed: Speed
+  font_size: Font size
+  family: Font
+  line_spacing: Line spacing
+  width_pct: Text width (%)
+  mirror_h: Mirror horizontally
+  mirror_v: Mirror vertically
+  open_output: Open prompter window
+  no_script: No script
+  assignment: Output
+  assigned_to: Fullscreen on %{monitor}
+  unassigned: No monitor assigned — opens windowed
+  preview: Preview
+  no_outputs: Open a prompter window to see the script on screen.
+settings:
+  title: Preferences
+  section:
+    about: About
+    appearance: Appearance
+    audio: Audio
+    capture: Capture
+    displays: Displays
+    project: Project
+    remote: Remote
+  about:
+    adwaita: libadwaita
+    gstreamer: GStreamer
+    gtk: GTK
+    license: GPL-3.0-or-later
+    version: Version %{version}
+  appearance:
+    language: Language
+    theme: Theme
+    theme_dark: Dark
+    theme_light: Light
+    theme_system: Follow the system
+  audio:
+    actions: Actions
+    default: System default
+    fallback: The saved output device is gone; using the system default.
+    no_devices: No audio output devices found.
+    refresh: Refresh
+    sink: Output device
+    sink_hint: The change applies when the next media file starts.
+    test_failed: 'Test tone failed: %{message}'
+    test_ok: Test tone played.
+    test_tone: Test tone
+  capture:
+    auto: Automatic (X11 on X11, portal on Wayland)
+    backend: Backend
+    hint: X11 window capture needs an X display; screen capture uses the desktop portal.
+    portal: Desktop portal
+    x11: X11 windows
+  displays:
+    operator: Operator console
+    operator_desktop: Desktop default
+    preview: Preview output
+    program: Program output
+    prompter: Prompter output
+    unassigned: Unassigned
+    windowed: Window every output at 960×540
+    windowed_hint: Overrides monitor assignment and fullscreen for all outputs.
+  error:
+    save: 'Could not save preferences: %{message}'
+  project:
+    grid: Grid spacing (px)
+    height: Height
+    no_project: Open a project to change its design settings.
+    preset: Resolution
+    preset_custom: Custom
+    preset_fhd: 1920 × 1080
+    preset_portrait: 1080 × 1920
+    preset_uhd: 3840 × 2160
+    rotation: Rotation
+    safe_area: Safe area
+    scale:
+      fit: Fit
+      fill: Fill
+      stretch: Stretch
+    scale_fill: Fill
+    scale_fit: Fit
+    scale_stretch: Stretch
+    width: Width
+    preset.custom: Custom
+    preset.fhd: 1920 × 1080
+    preset.portrait: 1080 × 1920
+    preset.uhd: 3840 × 2160
+    preset_label: Resolution
+    scale_label: Output scale
+  remote:
+    copied: Token copied.
+    copy: Copy
+    enabled: Enable the web remote
+    lan: LAN address
+    local: This machine
+    no_lan: No LAN address found
+    port: Port
+    regenerate: Regenerate
+    state: Status
+    state_off: 'Off'
+    state_on: Listening
+    token: Token
+    token_actions: Token actions
+    warning: Plain HTTP on the LAN — anyone with the token can control the show.
+player:
+  window:
+    title: Signifiage player
+  error:
+    missing_project: 'Cannot open %{path}: %{error}'
+    unsupported_path: '%{path} is neither a project directory nor a package'
+    extract: 'Cannot extract %{path}: %{error}'
+    invalid_project: 'Cannot load %{path}: %{error}'
+    no_display: 'Cannot open a display: %{error}'
+    no_playlist: Project %{project} has no playable playlist
+  remote:
+    ready: Web remote listening on %{url} — token %{token}
+    no_token: 'Web remote not started: no token for port %{port}'
+    failed: 'Web remote could not start on port %{port}: %{error}'
+  quit_hint: Press Ctrl+Q to quit

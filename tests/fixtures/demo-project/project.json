@@ -1,0 +1,212 @@
+{
+  "format": 1,
+  "name": "Demo Show",
+  "design": {
+    "width": 1920,
+    "height": 1080,
+    "background": "#0B1220",
+    "grid": 10,
+    "safe_area": true
+  },
+  "presentation": { "scale": "fit", "rotation": 0 },
+  "scenes": [
+    {
+      "id": "scn-welcome",
+      "name": "Welcome",
+      "background": "#0B1220",
+      "advance_on_media_end": false,
+      "layers": [
+        {
+          "id": "lyr-bg",
+          "name": "Background",
+          "visible": true,
+          "opacity": 1.0,
+          "rect": { "x": 0, "y": 0, "w": 1920, "h": 1080 },
+          "type": "image",
+          "props": { "asset": "assets/welcome-bg.png", "fit": "cover" }
+        },
+        {
+          "id": "lyr-title",
+          "name": "Title",
+          "visible": true,
+          "opacity": 1.0,
+          "rect": { "x": 160, "y": 300, "w": 1600, "h": 300 },
+          "type": "text",
+          "props": {
+            "text": "Demo Show",
+            "style": {
+              "family": "Sans",
+              "size": 140,
+              "bold": true,
+              "italic": false,
+              "color": "#F8FAFC",
+              "align": "center",
+              "line_spacing": 1.1,
+              "uppercase": false
+            },
+            "background": null,
+            "padding": 0
+          }
+        },
+        {
+          "id": "lyr-clock",
+          "name": "Clock",
+          "visible": true,
+          "opacity": 1.0,
+          "rect": { "x": 160, "y": 700, "w": 1600, "h": 180 },
+          "type": "clock",
+          "props": {
+            "preset": "24h_seconds",
+            "show_date": true,
+            "style": {
+              "family": "Sans",
+              "size": 72,
+              "bold": false,
+              "italic": false,
+              "color": "#94A3B8",
+              "align": "center",
+              "line_spacing": 1.1,
+              "uppercase": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "scn-deck",
+      "name": "Deck",
+      "background": "#000000",
+      "advance_on_media_end": false,
+      "layers": [
+        {
+          "id": "lyr-capture",
+          "name": "Presentation capture",
+          "visible": true,
+          "opacity": 1.0,
+          "rect": { "x": 0, "y": 0, "w": 1920, "h": 1080 },
+          "type": "capture",
+          "props": {
+            "source": {
+              "type": "camera",
+              "device": "",
+              "label": "",
+              "width": null,
+              "height": null,
+              "fps": null
+            },
+            "fit": "contain",
+            "mirror": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "scn-queue",
+      "name": "Queue",
+      "background": "#0B1220",
+      "advance_on_media_end": false,
+      "layers": [
+        {
+          "id": "lyr-queue",
+          "name": "Queue",
+          "visible": true,
+          "opacity": 1.0,
+          "rect": { "x": 0, "y": 0, "w": 1920, "h": 1080 },
+          "type": "queue",
+          "props": {
+            "title": "Now calling",
+            "empty_text": "Waiting for the first call",
+            "upcoming": 4,
+            "show_ticket": true,
+            "show_note": true,
+            "accent": "#22C55E",
+            "style": {
+              "family": "Sans",
+              "size": 88,
+              "bold": true,
+              "italic": false,
+              "color": "#F8FAFC",
+              "align": "center",
+              "line_spacing": 1.1,
+              "uppercase": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "playlists": [
+    {
+      "id": "pl-show",
+      "name": "Show",
+      "loop": true,
+      "items": [
+        { "scene_id": "scn-welcome", "duration_secs": 8 },
+        { "scene_id": "scn-deck", "duration_secs": 0 },
+        { "scene_id": "scn-queue", "duration_secs": 0 }
+      ]
+    }
+  ],
+  "default_playlist_id": "pl-show",
+  "schedules": [],
+  "queue": {
+    "source": null,
+    "next_ticket": 4,
+    "rows": [
+      {
+        "id": "row-1",
+        "ticket": "001",
+        "name": "Ayşe Yılmaz",
+        "note": "İlk çağrı",
+        "status": "waiting",
+        "created_at": "2026-01-05T09:00:00+03:00",
+        "called_at": null,
+        "call_count": 0,
+        "source_key": ""
+      },
+      {
+        "id": "row-2",
+        "ticket": "002",
+        "name": "Mehmet Öztürk",
+        "note": "Kontrol",
+        "status": "waiting",
+        "created_at": "2026-01-05T09:01:00+03:00",
+        "called_at": null,
+        "call_count": 0,
+        "source_key": ""
+      },
+      {
+        "id": "row-3",
+        "ticket": "003",
+        "name": "Zeynep Şahin",
+        "note": "",
+        "status": "waiting",
+        "created_at": "2026-01-05T09:02:00+03:00",
+        "called_at": null,
+        "call_count": 0,
+        "source_key": ""
+      }
+    ]
+  },
+  "timers": [
+    { "id": "show", "name": "Show", "duration_secs": null },
+    { "id": "speaker", "name": "Speaker", "duration_secs": 600 }
+  ],
+  "soundboard": {
+    "active_page": 0,
+    "pages": []
+  },
+  "prompter": {
+    "text": "Welcome to the demo show.\n\nThis teleprompter text scrolls on the prompter output.\n\nUse Start and Reset on the Prompter page.",
+    "font_family": "Sans",
+    "font_size": 64,
+    "line_spacing": 1.3,
+    "speed": 45,
+    "width_pct": 70,
+    "mirror_h": false,
+    "mirror_v": false,
+    "fg": "#F8FAFC",
+    "bg": "#000000"
+  },
+  "deck": { "next_key": "right", "prev_key": "left" }
+}

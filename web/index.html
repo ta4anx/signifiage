@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="referrer" content="no-referrer">
+  <title>Signifiage</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name" data-i18n="app.name">Signifiage</span>
+          <span class="brand-tagline" data-i18n="app.tagline">Signage &amp; stage remote</span>
+        </span>
+      </div>
+      <div class="topbar-right">
+        <span id="connectionState" class="conn-state" data-state="offline" data-i18n="connect.offline">Reconnecting…</span>
+        <div class="lang-toggle" role="group" aria-label="Language" data-i18n-aria-label="app.language">
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="tr">TR</button>
+        </div>
+      </div>
+    </header>
+
+    <section id="connectPanel" class="card connect" aria-labelledby="connectTitle" hidden>
+      <h1 id="connectTitle" class="panel-title" data-i18n="connect.title">Connect to Signifiage</h1>
+      <p class="muted small" data-i18n="connect.hint">Enter the remote token from Signifiage, Settings, Remote.</p>
+      <form id="connectForm" class="connect-form" autocomplete="off" novalidate>
+        <label class="field">
+          <span class="field-label" data-i18n="connect.token">Remote token</span>
+          <input id="tokenInput" name="token" type="password" inputmode="text" spellcheck="false"
+                 autocomplete="off" autocapitalize="off" placeholder="Paste the token"
+                 data-i18n-placeholder="connect.placeholder">
+        </label>
+        <p id="connectError" class="error small" role="alert" hidden></p>
+        <button class="btn primary block" type="submit" data-i18n="connect.button">Connect</button>
+      </form>
+    </section>
+
+    <main id="main" class="screen" hidden>
+      <section class="card status-card" aria-labelledby="projectLabel">
+        <div class="status-head">
+          <div class="status-project">
+            <span id="projectLabel" class="label" data-i18n="status.project">Project</span>
+            <strong id="projectName" class="project-name">—</strong>
+          </div>
+          <span id="onAirBadge" class="badge">OFF AIR</span>
+        </div>
+        <div class="status-program">
+          <span class="label" data-i18n="status.program">Program</span>
+          <div id="programName" class="program-name" data-i18n="status.none">Nothing on air</div>
+          <div id="statusChips" class="chips"></div>
+          <div id="showMeta" class="muted small"></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="queueTitle">
+        <div class="card-head">
+          <h2 id="queueTitle" class="card-title" data-i18n="queue.title">Queue</h2>
+          <span id="queueStats" class="muted small"></span>
+        </div>
+        <div id="queueCurrent" class="current"></div>
+        <h3 class="subhead" data-i18n="queue.next">Up next</h3>
+        <ol id="queueNext" class="next-list"></ol>
+        <div class="btn-grid queue-actions">
+          <button type="button" class="btn primary" data-action="queue.next" data-i18n="queue.action.next">Next</button>
+          <button type="button" class="btn" data-action="queue.recall" data-i18n="queue.action.recall">Recall</button>
+          <button type="button" class="btn" data-action="queue.done" data-i18n="queue.action.done">Done</button>
+          <button type="button" class="btn" data-action="queue.skip" data-i18n="queue.action.skip">Skip</button>
+          <button type="button" class="btn" data-action="queue.undo" data-i18n="queue.action.undo">Undo</button>
+        </div>
+        <form id="queueAddForm" class="add-form" autocomplete="off">
+          <label class="field">
+            <span class="field-label" data-i18n="queue.name">Name</span>
+            <input id="queueName" name="name" type="text" maxlength="120" autocomplete="off"
+                   placeholder="Name" data-i18n-placeholder="queue.namePlaceholder">
+          </label>
+          <label class="field">
+            <span class="field-label" data-i18n="queue.note">Note</span>
+            <input id="queueNote" name="note" type="text" maxlength="200" autocomplete="off"
+                   placeholder="Note (optional)" data-i18n-placeholder="queue.notePlaceholder">
+          </label>
+          <button class="btn primary block" type="submit" data-i18n="queue.add">Add</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="transportTitle">
+        <div class="card-head">
+          <h2 id="transportTitle" class="card-title" data-i18n="transport.title">Playback</h2>
+          <span id="playlistMeta" class="muted small"></span>
+        </div>
+        <div class="btn-grid two">
+          <button type="button" class="btn primary big" data-action="playback.next" data-i18n="transport.go">Go / Next</button>
+          <button type="button" class="btn big" data-action="playback.prev" data-i18n="transport.prev">Prev</button>
+        </div>
+        <div class="btn-grid toggles">
+          <button type="button" class="btn toggle" data-action="playback.black" data-toggle="black"
+                  aria-pressed="false" data-i18n="transport.black">Black</button>
+          <button type="button" class="btn toggle" data-action="playback.freeze" data-toggle="freeze"
+                  aria-pressed="false" data-i18n="transport.freeze">Freeze</button>
+          <button type="button" class="btn toggle" data-action="playback.mute" data-toggle="mute"
+                  aria-pressed="false" data-i18n="transport.mute">Mute</button>
+          <button type="button" class="btn toggle" data-action="playback.auto" data-toggle="auto"
+                  aria-pressed="false" data-i18n="transport.auto">Auto advance</button>
+        </div>
+        <label class="field">
+          <span class="field-label" data-i18n="transport.playlist">Playlist</span>
+          <select id="playlistSelect"></select>
+        </label>
+        <div id="sourceMeta" class="muted small"></div>
+      </section>
+
+      <section class="card" aria-labelledby="timersTitle">
+        <h2 id="timersTitle" class="card-title" data-i18n="timers.title">Timers</h2>
+        <div id="timerList" class="timer-list"></div>
+      </section>
+
+      <section class="card" aria-labelledby="prompterTitle">
+        <div class="card-head">
+          <h2 id="prompterTitle" class="card-title" data-i18n="prompter.title">Teleprompter</h2>
+          <span id="prompterState" class="badge quiet"></span>
+        </div>
+        <div class="btn-grid three">
+          <button type="button" class="btn" data-action="prompter.start" data-i18n="prompter.start">Start</button>
+          <button type="button" class="btn" data-action="prompter.pause" data-i18n="prompter.pause">Pause</button>
+          <button type="button" class="btn" data-action="prompter.reset" data-i18n="prompter.reset">Reset</button>
+        </div>
+        <div class="range-row">
+          <label class="field range-field" for="speedRange">
+            <span class="field-label" data-i18n="prompter.speed">Speed</span>
+          </label>
+          <span id="speedValue" class="range-value">45</span>
+        </div>
+        <input id="speedRange" class="range" type="range" min="10" max="200" step="1" value="45">
+      </section>
+
+      <section class="card" id="deckSection" aria-labelledby="deckTitle">
+        <div class="card-head">
+          <h2 id="deckTitle" class="card-title" data-i18n="deck.title">Deck control</h2>
+          <span id="deckBackend" class="badge quiet" hidden></span>
+        </div>
+        <div id="deckLabel" class="program-name"></div>
+        <p id="deckHint" class="muted small"></p>
+        <div class="btn-grid two">
+          <button type="button" class="btn big" data-action="deck.next" data-i18n="deck.next">Next slide</button>
+          <button type="button" class="btn big" data-action="deck.prev" data-i18n="deck.prev">Previous slide</button>
+        </div>
+        <p id="deckError" class="error small" role="alert" hidden></p>
+      </section>
+
+      <section class="card" aria-labelledby="patternsTitle">
+        <h2 id="patternsTitle" class="card-title" data-i18n="patterns.title">Patterns</h2>
+        <div id="patternList" class="btn-grid patterns"></div>
+        <button type="button" class="btn block" data-action="pattern.resume" data-i18n="patterns.resume">Resume program</button>
+      </section>
+
+      <section class="card" aria-labelledby="soundboardTitle">
+        <div class="card-head">
+          <h2 id="soundboardTitle" class="card-title" data-i18n="soundboard.title">Soundboard</h2>
+          <button type="button" class="btn small" data-action="soundboard.stop_all" data-i18n="soundboard.stopAll">Stop all</button>
+        </div>
+        <div id="pageTabs" class="tabs" role="tablist"></div>
+        <div id="padGrid" class="pad-grid"></div>
+      </section>
+
+      <section class="card" id="uploadSection" aria-labelledby="uploadTitle">
+        <h2 id="uploadTitle" class="card-title" data-i18n="upload.title">Upload asset</h2>
+        <p class="muted small" data-i18n="upload.hint">The file is copied into the open project's assets folder.</p>
+        <form id="uploadForm" class="upload-form" autocomplete="off">
+          <label class="field">
+            <span class="field-label" data-i18n="upload.choose">Choose file</span>
+            <input id="uploadInput" name="file" type="file"
+                   accept=".png,.jpg,.jpeg,.webp,.gif,.bmp,.svg,.tif,.tiff,.mp4,.webm,.mkv,.mov,.avi,.m4v,.ts,.wav,.mp3,.ogg,.oga,.flac,.m4a,.aac,.opus">
+          </label>
+          <button class="btn primary block" type="submit" data-i18n="upload.button">Upload</button>
+        </form>
+        <p id="uploadBlocked" class="muted" data-i18n="upload.player" hidden>Uploads require the desktop editor.</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span data-i18n="footer.note">Local network remote · unencrypted</span>
+      <span id="versionLabel" class="footer-version"></span>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>

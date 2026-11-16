@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Signifiage
+GenericName=Signage & Stage Console
+GenericName[tr]=Tabela ve Sahne Konsolu
+Comment=Signage, stage playback and queue console
+Comment[tr]=Tabela, sahne oynatımı ve sıra konsolu
+Exec=signifiage %F
+Icon=io.github.ta4anx.Signifiage
+Terminal=false
+Categories=AudioVideo;Video;Utility;
+Keywords=signage;stage;queue;teleprompter;playlist;
+Keywords[tr]=tabela;sahne;sıra;prompter;oynatma;
+StartupNotify=true
+StartupWMClass=io.github.ta4anx.Signifiage

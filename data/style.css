@@ -1,0 +1,69 @@
+/* Signifiage application styling. Kept minimal on purpose: libadwaita owns
+   the widget look, these rules only cover the sign-specific surfaces. */
+
+.signifiage-onair {
+  background-color: #dc2626;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 700;
+  font-size: 0.8em;
+}
+
+.signifiage-badge {
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.8em;
+  background-color: alpha(currentColor, 0.12);
+}
+
+.scene-canvas {
+  background-color: #000000;
+}
+
+.soundboard-pad {
+  min-width: 96px;
+  min-height: 72px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.soundboard-pad.playing {
+  box-shadow: inset 0 0 0 3px #22c55e;
+}
+
+.show-name {
+  font-weight: 700;
+}
+
+.mono-time {
+  font-feature-settings: "tnum";
+}
+
+.section {
+  padding: 6px;
+}
+
+.error {
+  color: #ef4444;
+}
+
+.queue-status-waiting {
+  color: #94a3b8;
+}
+
+.queue-status-called {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.queue-status-done,
+.queue-status-skipped {
+  color: #64748b;
+}
+
+.pad-editor-colour {
+  min-width: 48px;
+  min-height: 32px;
+  border-radius: 6px;
+}
