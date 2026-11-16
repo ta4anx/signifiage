@@ -77,6 +77,8 @@ fn main() -> glib::ExitCode {
                 remote: Default::default(),
                 ..Config::default()
             };
+            signifiage::logging::init();
+            signifiage::i18n::apply(config.language);
             let main = MainWindow::new(app, Some(project.clone()), config);
             main.show_page(&page);
             if prompter_output {
