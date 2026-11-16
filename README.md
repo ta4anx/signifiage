@@ -54,10 +54,14 @@ cargo run --release -- player ~/Shows/Stage2026 --windowed --remote
 ```bash
 bash scripts/build_deb.sh
 # build/signifiage_<version>_amd64.deb  (+ .sha256)
+
+sudo apt install ./build/signifiage_<version>_amd64.deb   # pulls gstreamer1.0-libav etc.
 ```
 
 The package installs `/usr/bin/signifiage`, the desktop entry, the icon, the
-AppStream metainfo and the docs. Assets and web UI are embedded in the binary.
+AppStream metainfo and the docs. Assets and web UI are embedded in the binary, so
+`apt remove signifiage` leaves no project data behind (projects are plain
+directories you choose, config lives in `~/.config/signifiage`).
 
 ## Player and publishing
 

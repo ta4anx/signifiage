@@ -1908,12 +1908,6 @@ impl Controller {
 
     /// Create the output manager and apply the configured monitors.
     pub fn ensure_outputs(&self) {
-        eprintln!(
-            "DBG ensure_outputs: existing={} mode={:?} app={}",
-            self.outputs.borrow().is_some(),
-            self.mode,
-            self.app.borrow().is_some()
-        );
         if self.outputs.borrow().is_some() || self.mode == Mode::Player {
             return;
         }

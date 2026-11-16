@@ -841,7 +841,6 @@ impl Inner {
     /// Put a `PrompterView` into the prompter output window instead of a scene view.
     fn sync_prompter_output(&self) {
         let Some(outputs) = self.controller.outputs() else {
-            eprintln!("DBG sync: no outputs");
             return;
         };
         let Some(window) = outputs.window_for(crate::ui::outputs::OutputRole::Prompter) else {

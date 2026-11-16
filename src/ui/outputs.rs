@@ -244,10 +244,6 @@ impl OutputManager {
             .application(&self.app)
             .title(&format!("Signifiage {}", rust_i18n::t!(role.label_key())))
             .build();
-        eprintln!(
-            "DBG open_windowed role={role:?} factory={}",
-            self.prompter_factory.borrow().is_some()
-        );
         let child = match (role, self.prompter_widget()) {
             (OutputRole::Prompter, Some(widget)) => widget,
             _ => view.clone().upcast(),
