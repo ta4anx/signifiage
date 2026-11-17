@@ -494,3 +494,62 @@ fn snapshot_counts_and_upcoming_limit() {
         (0..5).map(|i| format!("waiting {i}")).collect::<Vec<_>>()
     );
 }
+
+#[test]
+fn restart_resets_statuses_and_ticket_numbers_with_one_undo() {
+    let mut data = QueueData {
+        next_ticket: 9,
+        ..QueueData::default()
+    };
+    for name in ["a", "b", "c"] {
+        data.rows.push(QueueRow {
+            name: name.into(),
+            status: QueueStatus::Waiting,
+            ..QueueRow::default()
+        });
+    }
+    let mut service = QueueService::new(data);
+    assert!(service.next());
+    assert!(service.next());
+    assert!(service.restart());
+    let snapshot = service.snapshot();
+    assert!(snapshot.current.is_none());
+    assert_eq!(snapshot.waiting, 3);
+    assert_eq!(service.data().next_ticket, 1);
+    assert!(service.undo(), "restart must be undoable");
+    // Undo restores the previous state: one called, one done, one waiting.
+    assert_eq!(service.snapshot().waiting, 1);
+    assert!(service.snapshot().current.is_some());
+}
+
+#[test]
+fn random_pick_calls_a_waiting_person() {
+    let mut data = QueueData {
+        next_ticket: 1,
+        ..QueueData::default()
+    };
+    for name in ["Ayşe", "Mehmet", "Zeynep"] {
+        data.rows.push(QueueRow {
+            name: name.into(),
+            ticket: String::new(),
+            status: QueueStatus::Waiting,
+            ..QueueRow::default()
+        });
+    }
+    let mut service = QueueService::new(data);
+    let picked = service.call_random().expect("a waiting row exists");
+    assert_eq!(
+        service.snapshot().current.map(|row| row.id),
+        Some(picked.id.clone())
+    );
+    assert_eq!(service.snapshot().called, 1);
+    assert_eq!(service.snapshot().waiting, 2);
+
+    // Only called once; then the queue can be drained deterministically.
+    service.done();
+    service.call_random();
+    service.done();
+    service.call_random();
+    service.done();
+    assert!(service.call_random().is_none(), "no waiting rows left");
+}

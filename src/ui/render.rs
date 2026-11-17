@@ -81,6 +81,10 @@ pub struct QueueEntry {
 #[derive(Debug, Clone, Default)]
 pub struct RenderData {
     pub current: Option<QueueEntry>,
+    /// Previously finished call, drawn at the bottom when tracking is enabled.
+    pub last_called: Option<QueueEntry>,
+    /// Seconds since the current call started, while the glow animation runs.
+    pub glow_phase: Option<f64>,
     pub upcoming: Vec<QueueEntry>,
     pub timers: HashMap<String, TimerTexts>,
     /// Remaining time of the committed playlist item, formatted.
@@ -637,7 +641,7 @@ mod imp {
             let inner_x = x + pad;
             let inner_w = w - pad * 2.0;
             let mut cursor = y + h * 0.08;
-            let max_y = y + h - h * 0.06;
+            let max_y = y + h - h * 0.02;
 
             // Title, small caps in the accent colour.
             let title_style = TextStyle {
@@ -661,6 +665,65 @@ mod imp {
             cursor += h * 0.02;
             self.fill(inner_x, cursor, inner_w, 3.0, gdk_rgba(accent));
             cursor += h * 0.05;
+
+            // "Next in line" preview (privacy switch hides the waiting names).
+            if props.show_next
+                && let Some(next) = self.data.upcoming.first()
+            {
+                let next_style = TextStyle {
+                    size: props.style.size * 0.42,
+                    bold: true,
+                    uppercase: true,
+                    align: crate::model::layer::TextAlign::Center,
+                    color: "#94A3B8".to_string(),
+                    ..props.style.clone()
+                };
+                let text = if props.show_ticket && !next.ticket.is_empty() {
+                    format!(
+                        "{} {}",
+                        rust_i18n::t!("queue.next_in_line"),
+                        format!(
+                            "{}  {}",
+                            crate::model::queue::pad_ticket(&next.ticket),
+                            next.name
+                        )
+                    )
+                } else {
+                    format!("{} {}", rust_i18n::t!("queue.next_in_line"), next.name)
+                };
+                let used = self.layout(
+                    &text,
+                    &next_style,
+                    inner_x,
+                    cursor,
+                    inner_w,
+                    h * 0.07,
+                    None,
+                    false,
+                );
+                cursor += used + h * 0.015;
+            }
+
+            // Breathing halo behind the called name while the glow runs.
+            if let Some(phase) = self.data.glow_phase
+                && self.data.current.is_some()
+            {
+                let pulse = 0.5 + 0.5 * (phase * std::f64::consts::TAU * 0.8).sin();
+                let alpha = (0.05 + 0.10 * pulse) as f32;
+                let halo = gdk::RGBA::new(
+                    f32::from(accent.r) / 255.0,
+                    f32::from(accent.g) / 255.0,
+                    f32::from(accent.b) / 255.0,
+                    alpha,
+                );
+                self.fill(
+                    inner_x - pad * 0.15,
+                    cursor - h * 0.005,
+                    inner_w + pad * 0.3,
+                    (h * 0.42).min(max_y - cursor),
+                    halo,
+                );
+            }
 
             match &self.data.current {
                 Some(current) => {
@@ -743,8 +806,46 @@ mod imp {
                 }
             }
 
-            // Upcoming waiting rows.
-            let mut row_cursor = cursor + h * 0.04;
+            // Last called (tracking switch) — right under the current call.
+            let mut row_cursor = cursor + h * 0.02;
+            if props.show_last_called
+                && let Some(last) = self.data.last_called.as_ref()
+            {
+                let last_style = TextStyle {
+                    size: props.style.size * 0.4,
+                    bold: false,
+                    uppercase: true,
+                    align: crate::model::layer::TextAlign::Center,
+                    color: "#64748B".to_string(),
+                    ..props.style.clone()
+                };
+                let text = if props.show_ticket && !last.ticket.is_empty() {
+                    format!(
+                        "{} {}",
+                        rust_i18n::t!("queue.last_called"),
+                        format!(
+                            "{}  {}",
+                            crate::model::queue::pad_ticket(&last.ticket),
+                            last.name
+                        )
+                    )
+                } else {
+                    format!("{} {}", rust_i18n::t!("queue.last_called"), last.name)
+                };
+                let used = self.layout(
+                    &text,
+                    &last_style,
+                    inner_x,
+                    row_cursor,
+                    inner_w,
+                    h * 0.06,
+                    None,
+                    false,
+                );
+                row_cursor += used + h * 0.015;
+            }
+
+            // Upcoming waiting rows (hidden entirely by the privacy switch).
             let row_style = TextStyle {
                 size: props.style.size * 0.55,
                 bold: false,
@@ -752,11 +853,16 @@ mod imp {
                 color: "#CBD5E1".to_string(),
                 ..props.style.clone()
             };
-            for entry in self.data.upcoming.iter().take(props.upcoming as usize) {
+            let rows: &[QueueEntry] = if props.show_next {
+                &self.data.upcoming
+            } else {
+                &[]
+            };
+            for entry in rows.iter().take(props.upcoming as usize) {
                 if row_cursor + h * 0.06 > max_y {
                     break;
                 }
-                let text = if entry.ticket.is_empty() {
+                let text = if !props.show_ticket || entry.ticket.is_empty() {
                     entry.name.clone()
                 } else {
                     format!(
@@ -775,7 +881,7 @@ mod imp {
                     None,
                     false,
                 );
-                row_cursor += used + h * 0.012;
+                row_cursor += used + h * 0.006;
             }
         }
 
@@ -1048,7 +1154,12 @@ impl SceneView {
     }
 
     pub fn set_render_data(&self, data: RenderData) {
+        let was_glowing = self.imp().data.borrow().glow_phase.is_some();
+        let is_glowing = data.glow_phase.is_some();
         self.imp().data.replace(data);
+        if was_glowing != is_glowing {
+            self.ensure_timeout();
+        }
         self.queue_draw();
     }
 

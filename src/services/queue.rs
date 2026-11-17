@@ -6,6 +6,8 @@
 
 use std::collections::VecDeque;
 
+use rand::Rng;
+
 use crate::model::queue::fold_ascii;
 use crate::model::{QueueData, QueueRow, QueueStatus, now_rfc3339};
 
@@ -18,6 +20,7 @@ const SNAPSHOT_UPCOMING: usize = 5;
 #[derive(Debug, Clone, PartialEq)]
 pub struct QueueSnapshot {
     pub current: Option<QueueRow>,
+    pub last_called: Option<QueueRow>,
     pub upcoming: Vec<QueueRow>,
     pub waiting: usize,
     pub called: usize,
@@ -89,6 +92,7 @@ impl QueueService {
     pub fn snapshot(&self) -> QueueSnapshot {
         QueueSnapshot {
             current: self.data.current().cloned(),
+            last_called: self.data.last_called().cloned(),
             upcoming: self
                 .data
                 .upcoming(SNAPSHOT_UPCOMING)
@@ -231,6 +235,49 @@ impl QueueService {
         self.push_undo();
         self.data.rows.remove(index);
         Ok(())
+    }
+
+    /// Call a random waiting row (experimental "random pick").
+    pub fn call_random(&mut self) -> Option<QueueRow> {
+        let waiting: Vec<usize> = self
+            .data
+            .rows
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| row.status == QueueStatus::Waiting)
+            .map(|(index, _)| index)
+            .collect();
+        if waiting.is_empty() {
+            return None;
+        }
+        let row_index = waiting[rand::rng().random_range(0..waiting.len())];
+        let id = self.data.rows[row_index].id.clone();
+        if self.call(&id) {
+            self.data.current().cloned()
+        } else {
+            None
+        }
+    }
+
+    /// Put every row back to `waiting` and restart the ticket counter.
+    pub fn restart(&mut self) -> bool {
+        let unchanged = self.data.next_ticket == 1
+            && self
+                .data
+                .rows
+                .iter()
+                .all(|row| row.status == QueueStatus::Waiting && row.call_count == 0);
+        if unchanged {
+            return false;
+        }
+        self.push_undo();
+        for row in &mut self.data.rows {
+            row.status = QueueStatus::Waiting;
+            row.called_at = None;
+            row.call_count = 0;
+        }
+        self.data.next_ticket = 1;
+        true
     }
 
     pub fn undo(&mut self) -> bool {

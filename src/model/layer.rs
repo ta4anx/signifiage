@@ -599,6 +599,10 @@ pub struct QueueProps {
     pub upcoming: u32,
     pub show_ticket: bool,
     pub show_note: bool,
+    /// Show the previously finished call at the bottom (tracking).
+    pub show_last_called: bool,
+    /// Show who is next / who is waiting (privacy switch hides names).
+    pub show_next: bool,
     pub accent: String,
     pub style: TextStyle,
 }
@@ -611,6 +615,8 @@ impl Default for QueueProps {
             upcoming: 4,
             show_ticket: true,
             show_note: true,
+            show_last_called: true,
+            show_next: true,
             accent: "#22C55E".to_string(),
             style: TextStyle {
                 size: 72.0,

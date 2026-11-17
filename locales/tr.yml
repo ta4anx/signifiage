@@ -18,6 +18,8 @@ menu:
   about: Signifiage Hakkında
   quit: Çık
   recent: Son projeler
+  fullscreen: Tam ekran (F11)
+  fullscreen_hint: Tam ekranı aç/kapat (F11)
 language:
   system: Sistem varsayılanı
   english: English
@@ -183,6 +185,9 @@ queue:
     not_waiting: Yalnızca bekleyen satırlar çağrılabilir.
     nothing_new: Elektronik tabloda yeni satır yok.
     nothing_to_undo: Geri alınacak işlem yok.
+    random_picked: 'Rastgele seçim: %{name}'
+    restarted: Sıra baştan başlatıldı.
+    write_back_failed: 'Durum elektronik tabloya yazılamadı: %{error}'
   wizard:
     title: Elektronik tablodan sıra içe aktar
     file: Elektronik tablo
@@ -207,6 +212,18 @@ queue:
   reading: Elektronik tablo okunuyor…
   source_error: 'Elektronik tablo okunamıyor: %{message}'
   sync_never: hiç
+  show_last_called: Son çağrı
+  show_last_called_hint: Bir önceki çağrıyı panonun altında görünür tut (takip).
+  show_next: Sıradaki
+  show_next_hint: Sırada kimin beklediğini göster; bekleyen isimleri gizlemek için kapatın.
+  show_ticket: Numara
+  show_ticket_hint: Her ismin önünde numarayı göster.
+  call_person: Kişi çağır…
+  random_pick: Rastgele seç
+  restart: Listeyi baştan başlat
+  restart_confirm: Tüm satırlar beklemeye alınsın, mevcut çağrı temizlensin ve numaralar baştan başlasın mı?
+  next_in_line: Sıradaki
+  last_called: Son çağrı
 soundboard:
   pad_prefix: Tuş
   page_prefix: Sayfa
@@ -515,6 +532,8 @@ inspector:
   timer_count_up: Yukarı sayan
   timer_missing: Seçilen sayaç artık yok.
   timer_none: Tanımlı sayaç yok
+  show_last_called: Son çağrıyı göster
+  show_next: Sıradakini göster
 prompter:
   title: Prompter
   script: Metin
@@ -545,6 +564,8 @@ settings:
     displays: Ekranlar
     project: Proje
     remote: Kumanda
+    queue: Sıra
+    experimental: Deneysel
   about:
     adwaita: libadwaita
     gstreamer: GStreamer
@@ -625,6 +646,25 @@ settings:
     token: Jeton
     token_actions: Jeton işlemleri
     warning: Yerel ağda düz HTTP — jetonu bilen herkes gösteriyi kontrol edebilir.
+  queue:
+    call_sound: Çağırma
+    sound_enabled: İsim çağrıldığında ses çal
+    sound_hint: Kısa bir zil sesi yukarıda seçilen ses çıkışından çalar.
+    sound_file: Çağrı sesi
+    sound_default: Yerleşik ding-dong
+    choose_file: Dosya seç…
+    use_default: Varsayılanı kullan
+    test: Dene
+    sound_missing: Seçilen çağrı sesi dosyası bulunamadı.
+    glow: Parlama süresi (saniye)
+    glow_hint: Çağrılan ismin panoda ne kadar süre nabız gibi parlayacağı (0 kapalı).
+  experimental:
+    title: Sıra denemeleri
+    hint: Varsayılan olarak kapalı. Bu özellikler canlı sıra verisine ve bağlı elektronik tabloya dokunur; yalnızca sonucu doğrulayabildiğinizde açın.
+    random_pick: Rastgele seç
+    random_pick_hint: 'Sıra sayfasına bir Rastgele seç düğmesi ekler: bekleyenlerden rastgele birini çağırır.'
+    write_back: Durumu .ods dosyasına yaz
+    write_back_hint: Bir isim çağrıldığında durumunu bağlı OpenDocument tablosuna yazar. Diğer biçimler yok sayılır.
 player:
   window:
     title: Signifiage oynatıcı

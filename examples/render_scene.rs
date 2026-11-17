@@ -15,13 +15,14 @@ use gtk4 as gtk;
 
 use signifiage::model::LayerKind;
 use signifiage::model::project::{self, Project};
-use signifiage::ui::render::{RenderData, SceneView, ViewMode};
+use signifiage::ui::render::{QueueEntry, RenderData, SceneView, ViewMode};
 
 fn main() -> glib::ExitCode {
     let mut out = PathBuf::from("/tmp/signifiage-render.png");
     let mut project_dir: Option<PathBuf> = None;
     let mut scene_name: Option<String> = None;
     let mut size = (1280, 720);
+    let mut queue_demo = false;
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -37,6 +38,7 @@ fn main() -> glib::ExitCode {
                 }
             }
             "--scene" => scene_name = args.next(),
+            "--queue-demo" => queue_demo = true,
             "--width" => {
                 if let Some(value) = args.next().and_then(|v| v.parse().ok()) {
                     size.0 = value;
@@ -93,7 +95,33 @@ fn main() -> glib::ExitCode {
             );
             view.set_asset_base(Some(project_dir.clone()));
             view.set_scene(Some(scene.clone()));
-            view.set_render_data(RenderData::default());
+            let mut data = RenderData::default();
+            if queue_demo {
+                data.current = Some(QueueEntry {
+                    ticket: "007".into(),
+                    name: "Ayşe Yılmaz".into(),
+                    note: "Please come to the front desk".into(),
+                });
+                data.upcoming = [
+                    ("008", "Mehmet Öztürk"),
+                    ("009", "Zeynep Şahin"),
+                    ("010", "Ali Demir"),
+                ]
+                .iter()
+                .map(|(ticket, name)| QueueEntry {
+                    ticket: (*ticket).into(),
+                    name: (*name).into(),
+                    note: String::new(),
+                })
+                .collect();
+                data.last_called = Some(QueueEntry {
+                    ticket: "006".into(),
+                    name: "Fatma Kaya".into(),
+                    note: String::new(),
+                });
+                data.glow_phase = Some(0.2);
+            }
+            view.set_render_data(data);
 
             let window = gtk::ApplicationWindow::builder()
                 .application(app)

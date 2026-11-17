@@ -1331,6 +1331,42 @@ impl Inspector {
             &show_ticket,
         ));
 
+        let show_last_called = widgets::switch(props.show_last_called);
+        bind_switch(
+            &show_last_called,
+            &self.controller,
+            &self.updating,
+            &layer.id,
+            "inspector-queue-last-called",
+            |layer, value| {
+                if let LayerKind::Queue(props) = &mut layer.kind {
+                    props.show_last_called = value;
+                }
+            },
+        );
+        body.append(&widgets::labelled(
+            &t!("inspector.show_last_called").to_string(),
+            &show_last_called,
+        ));
+
+        let show_next = widgets::switch(props.show_next);
+        bind_switch(
+            &show_next,
+            &self.controller,
+            &self.updating,
+            &layer.id,
+            "inspector-queue-show-next",
+            |layer, value| {
+                if let LayerKind::Queue(props) = &mut layer.kind {
+                    props.show_next = value;
+                }
+            },
+        );
+        body.append(&widgets::labelled(
+            &t!("inspector.show_next").to_string(),
+            &show_next,
+        ));
+
         let show_note = widgets::switch(props.show_note);
         bind_switch(
             &show_note,

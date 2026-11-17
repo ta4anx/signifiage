@@ -229,6 +229,17 @@ impl QueueData {
             .collect()
     }
 
+    /// Most recently finished call (done/skipped), for the "last called" board.
+    pub fn last_called(&self) -> Option<&QueueRow> {
+        self.rows
+            .iter()
+            .filter(|row| {
+                matches!(row.status, QueueStatus::Done | QueueStatus::Skipped)
+                    && row.called_at.is_some()
+            })
+            .max_by(|a, b| a.called_at.cmp(&b.called_at))
+    }
+
     pub fn count(&self, status: QueueStatus) -> usize {
         self.rows.iter().filter(|row| row.status == status).count()
     }

@@ -36,6 +36,10 @@ pub struct QueuePage {
     source_label: gtk::Label,
     sync_label: gtk::Label,
     stats_label: gtk::Label,
+    last_called_toggle: gtk::ToggleButton,
+    next_toggle: gtk::ToggleButton,
+    ticket_toggle: gtk::ToggleButton,
+    random_button: gtk::Button,
     current_card: gtk::Box,
     current_signature: RefCell<String>,
     search: gtk::SearchEntry,
@@ -68,6 +72,21 @@ impl QueuePage {
         sync_label.set_xalign(1.0);
 
         let stats_label = widgets::dim_label("");
+
+        let last_called_toggle =
+            gtk::ToggleButton::with_label(&t!("queue.show_last_called").to_string());
+        last_called_toggle.set_active(true);
+        last_called_toggle.set_tooltip_text(Some(&t!("queue.show_last_called_hint").to_string()));
+        let next_toggle = gtk::ToggleButton::with_label(&t!("queue.show_next").to_string());
+        next_toggle.set_active(true);
+        next_toggle.set_tooltip_text(Some(&t!("queue.show_next_hint").to_string()));
+        let ticket_toggle = gtk::ToggleButton::with_label(&t!("queue.show_ticket").to_string());
+        ticket_toggle.set_active(true);
+        ticket_toggle.set_tooltip_text(Some(&t!("queue.show_ticket_hint").to_string()));
+        let call_person_button = widgets::button(&t!("queue.call_person").to_string());
+        let random_button = widgets::button(&t!("queue.random_pick").to_string());
+        let restart_button = widgets::button(&t!("queue.restart").to_string());
+        restart_button.add_css_class("destructive-action");
 
         let current_card = gtk::Box::new(gtk::Orientation::Vertical, 8);
         current_card.add_css_class("card");
@@ -107,9 +126,18 @@ impl QueuePage {
         actions.append(&undo_button);
         let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         spacer.set_hexpand(true);
+        actions.append(&call_person_button);
+        actions.append(&random_button);
+        actions.append(&restart_button);
         actions.append(&spacer);
         actions.append(&reload_button);
         header.append(&actions);
+
+        let display_row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        display_row.append(&last_called_toggle);
+        display_row.append(&next_toggle);
+        display_row.append(&ticket_toggle);
+        header.append(&display_row);
 
         let source_row = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         source_row.append(&source_label);
@@ -154,6 +182,10 @@ impl QueuePage {
             source_label: source_label.clone(),
             sync_label: sync_label.clone(),
             stats_label: stats_label.clone(),
+            last_called_toggle: last_called_toggle.clone(),
+            next_toggle: next_toggle.clone(),
+            ticket_toggle: ticket_toggle.clone(),
+            random_button: random_button.clone(),
             current_card: current_card.clone(),
             current_signature: RefCell::new(String::new()),
             search: search.clone(),
@@ -197,6 +229,61 @@ impl QueuePage {
                     overlay.clone(),
                     window_of(&overlay),
                     None,
+                );
+            });
+        }
+        {
+            let controller = controller.clone();
+            last_called_toggle.connect_toggled(move |button| {
+                controller.set_queue_display(Some(button.is_active()), None, None);
+            });
+        }
+        {
+            let controller = controller.clone();
+            next_toggle.connect_toggled(move |button| {
+                controller.set_queue_display(None, Some(button.is_active()), None);
+            });
+        }
+        {
+            let controller = controller.clone();
+            ticket_toggle.connect_toggled(move |button| {
+                controller.set_queue_display(None, None, Some(button.is_active()));
+            });
+        }
+        {
+            let controller = controller.clone();
+            let overlay = overlay.clone();
+            call_person_button.connect_clicked(move |_| {
+                call_person_dialog(&controller, &overlay);
+            });
+        }
+        {
+            let controller = controller.clone();
+            let overlay = overlay.clone();
+            let random_button = random_button.clone();
+            random_button.connect_clicked(move |_| match controller.queue_call_random() {
+                Some(row) => widgets::toast(
+                    &overlay,
+                    &t!("queue.toast.random_picked", name = row.name).to_string(),
+                ),
+                None => widgets::toast(&overlay, &t!("queue.toast.nobody_waiting").to_string()),
+            });
+        }
+        {
+            let controller = controller.clone();
+            let overlay = overlay.clone();
+            restart_button.connect_clicked(move |_| {
+                let controller = controller.clone();
+                let overlay = overlay.clone();
+                widgets::confirm(
+                    None,
+                    &t!("queue.restart").to_string(),
+                    &t!("queue.restart_confirm").to_string(),
+                    move || {
+                        if controller.queue_restart() {
+                            widgets::toast(&overlay, &t!("queue.toast.restarted").to_string());
+                        }
+                    },
                 );
             });
         }
@@ -364,6 +451,12 @@ impl QueuePage {
                 self.source_label.set_tooltip_text(None);
             }
         }
+        let (show_last, show_next, show_ticket) = self.controller.queue_display();
+        self.last_called_toggle.set_active(show_last);
+        self.next_toggle.set_active(show_next);
+        self.ticket_toggle.set_active(show_ticket);
+        self.random_button
+            .set_visible(self.controller.config().experimental.random_pick);
         let snapshot = self.controller.queue();
         self.stats_label.set_text(
             &t!(
@@ -792,6 +885,110 @@ impl QueuePage {
         }
         window.present();
     }
+}
+
+/// Pick a waiting person by name and call them (works with long queues).
+fn call_person_dialog(controller: &Rc<Controller>, overlay: &adw::ToastOverlay) {
+    let waiting: Vec<_> = controller
+        .queue_rows()
+        .into_iter()
+        .filter(|row| row.status == QueueStatus::Waiting)
+        .collect();
+    let window = adw::Window::builder()
+        .title(t!("queue.call_person").to_string())
+        .modal(true)
+        .default_width(460)
+        .default_height(420)
+        .build();
+    if let Some(parent) = window_of(overlay) {
+        window.set_transient_for(Some(&parent));
+    }
+    let toolbar = adw::ToolbarView::new();
+    toolbar.add_top_bar(&adw::HeaderBar::new());
+    let body = gtk::Box::new(gtk::Orientation::Vertical, 6);
+    body.set_margin_top(8);
+    body.set_margin_bottom(12);
+    body.set_margin_start(12);
+    body.set_margin_end(12);
+
+    if waiting.is_empty() {
+        body.append(&widgets::dim_label(&t!("queue.no_waiting").to_string()));
+    } else {
+        let search = gtk::SearchEntry::new();
+        search.set_placeholder_text(Some(&t!("queue.search_placeholder").to_string()));
+        body.append(&search);
+        let list = gtk::ListBox::new();
+        list.set_selection_mode(gtk::SelectionMode::None);
+        list.add_css_class("boxed-list");
+        for row in &waiting {
+            let item = gtk::ListBoxRow::new();
+            let line = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+            line.set_margin_top(6);
+            line.set_margin_bottom(6);
+            line.set_margin_start(8);
+            line.set_margin_end(8);
+            let text = if row.ticket.trim().is_empty() {
+                row.name.clone()
+            } else {
+                format!(
+                    "{}  {}",
+                    crate::model::queue::pad_ticket(&row.ticket),
+                    row.name
+                )
+            };
+            let label = gtk::Label::new(Some(&text));
+            label.set_xalign(0.0);
+            label.set_hexpand(true);
+            line.append(&label);
+            let call = widgets::suggested(&t!("queue.call").to_string());
+            line.append(&call);
+            item.set_child(Some(&line));
+            item.set_widget_name(&row.name);
+            {
+                let controller = controller.clone();
+                let window = window.clone();
+                let id = row.id.clone();
+                call.connect_clicked(move |_| {
+                    controller.queue_call(&id);
+                    window.close();
+                });
+            }
+            list.append(&item);
+        }
+        let scrolled = gtk::ScrolledWindow::builder()
+            .child(&list)
+            .vexpand(true)
+            .build();
+        body.append(&scrolled);
+        {
+            let list = list.clone();
+            search.connect_search_changed(move |entry| {
+                let needle = entry.text().to_lowercase();
+                let mut child = list.first_child();
+                while let Some(row) = child {
+                    child = row.next_sibling();
+                    if let Some(row) = row.downcast_ref::<gtk::ListBoxRow>() {
+                        let hit =
+                            needle.is_empty() || row.widget_name().to_lowercase().contains(&needle);
+                        row.set_visible(hit);
+                    }
+                }
+            });
+        }
+    }
+
+    let close = widgets::button(&t!("common.close").to_string());
+    {
+        let window = window.clone();
+        close.connect_clicked(move |_| window.close());
+    }
+    let footer = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    footer.set_halign(gtk::Align::End);
+    footer.append(&close);
+    body.append(&footer);
+    toolbar.set_content(Some(&body));
+    window.set_content(Some(&toolbar));
+    window.present();
 }
 
 impl Page for QueuePage {

@@ -46,6 +46,7 @@ struct Inner {
     dock_button: gtk::ToggleButton,
     live_switch: gtk::Switch,
     live_box: gtk::Box,
+    fullscreen_button: gtk::ToggleButton,
     menu_button: gtk::MenuButton,
     recent_box: gtk::Box,
     weak_self: RefCell<Option<std::rc::Weak<Inner>>>,
@@ -92,6 +93,10 @@ impl MainWindow {
         dock_button.set_icon_name("audio-headphones-symbolic");
         dock_button.set_tooltip_text(Some(&t!("soundboard.dock_tooltip").to_string()));
         let live_switch = widgets::switch(false);
+        let fullscreen_button = gtk::ToggleButton::new();
+        fullscreen_button.set_icon_name("view-fullscreen-symbolic");
+        fullscreen_button.add_css_class("flat");
+        fullscreen_button.set_tooltip_text(Some(&t!("menu.fullscreen_hint").to_string()));
 
         let recent_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
         let (welcome, new_button, open_button) = build_welcome(&recent_box);
@@ -118,6 +123,7 @@ impl MainWindow {
             dock_button: dock_button.clone(),
             live_switch: live_switch.clone(),
             live_box: gtk::Box::new(gtk::Orientation::Horizontal, 6),
+            fullscreen_button: fullscreen_button.clone(),
             menu_button: menu_button.clone(),
             recent_box: recent_box.clone(),
             weak_self: RefCell::new(None),
@@ -294,6 +300,14 @@ impl MainWindow {
         inner.install_shortcuts(&window_for_shortcuts);
         inner.install_close_handler();
 
+        {
+            let weak = Rc::downgrade(&inner);
+            window.connect_fullscreened_notify(move |window| {
+                if let Some(inner) = weak.upgrade() {
+                    inner.fullscreen_button.set_active(window.is_fullscreen());
+                }
+            });
+        }
         window.present();
         Self { inner }
     }
@@ -367,10 +381,8 @@ impl Inner {
             let weak = Rc::downgrade(self);
             move |stack| {
                 if let Some(inner) = weak.upgrade() {
-                    let visible = stack.visible_child_name().map(|name| name.to_string());
-                    inner
-                        .live_box
-                        .set_visible(visible.as_deref() == Some("design"));
+                    let _ = stack;
+                    inner.sync_page_chrome();
                     inner.live_switch.set_active(inner.controller.live_edit());
                 }
             }
@@ -393,6 +405,15 @@ impl Inner {
         self.live_box.append(&self.live_switch);
         self.live_box.set_visible(false);
         header.pack_end(&self.live_box);
+        header.pack_end(&self.fullscreen_button);
+        {
+            let weak = Rc::downgrade(self);
+            self.fullscreen_button.connect_toggled(move |button| {
+                if let Some(inner) = weak.upgrade() {
+                    inner.set_fullscreen(button.is_active());
+                }
+            });
+        }
         self.live_switch
             .set_tooltip_text(Some(&t!("design.live_tooltip").to_string()));
         {
@@ -505,8 +526,8 @@ impl Inner {
         self.content.set_visible_child_name("welcome");
 
         let clamp = adw::Clamp::builder()
-            .maximum_size(1800)
-            .tightening_threshold(1400)
+            .maximum_size(4200)
+            .tightening_threshold(3200)
             .child(&self.content)
             .build();
         let toolbar = adw::ToolbarView::new();
@@ -546,6 +567,10 @@ impl Inner {
         menu.append_section(None, &project);
 
         let settings = gio::Menu::new();
+        settings.append(
+            Some(&t!("menu.fullscreen").to_string()),
+            Some("win.fullscreen"),
+        );
         settings.append(Some(&t!("menu.settings").to_string()), Some("win.settings"));
         settings.append(Some(&t!("menu.about").to_string()), Some("win.about"));
         menu.append_section(None, &settings);
@@ -572,7 +597,7 @@ impl Inner {
     }
 
     fn install_shortcuts(self: &Rc<Self>, window: &adw::ApplicationWindow) {
-        let actions: [(&str, fn(&Inner)); 7] = [
+        let actions: [(&str, fn(&Inner)); 8] = [
             ("new", |inner| inner.new_project()),
             ("open", |inner| inner.open_project_dialog()),
             ("save", |inner| {
@@ -587,6 +612,9 @@ impl Inner {
                 SettingsWindow::present(inner.controller.clone(), &inner.window)
             }),
             ("about", |inner| dialogs::about(&inner.window)),
+            ("fullscreen", |inner| {
+                inner.set_fullscreen(!inner.window.is_fullscreen())
+            }),
             ("quit", |inner| inner.window.close()),
         ];
         for (name, handler) in actions {
@@ -700,7 +728,16 @@ impl Inner {
                     inner.sync_soundboard_state();
                     glib::Propagation::Stop
                 }
+                (gtk::gdk::Key::F11, false, _) | (gtk::gdk::Key::f, true, _) => {
+                    let on = !inner.window.is_fullscreen();
+                    inner.set_fullscreen(on);
+                    glib::Propagation::Stop
+                }
                 (gtk::gdk::Key::Escape, false, _) => {
+                    if inner.window.is_fullscreen() {
+                        inner.set_fullscreen(false);
+                        return glib::Propagation::Stop;
+                    }
                     inner.dock_button.set_active(false);
                     glib::Propagation::Stop
                 }
@@ -732,6 +769,29 @@ impl Inner {
             inner.release_self();
             glib::Propagation::Proceed
         });
+    }
+
+    /// Show the controls that belong to the visible page only.
+    fn sync_page_chrome(&self) {
+        let page = self
+            .stack
+            .visible_child_name()
+            .map(|name| name.to_string())
+            .unwrap_or_default();
+        let open = self.controller.is_open();
+        self.live_box.set_visible(page == "design" && open);
+        // Queue operating and show transport are separate workflows.
+        self.show_bar.set_visible(page != "queue");
+    }
+
+    /// Enter or leave fullscreen, keeping the header toggle in sync.
+    fn set_fullscreen(&self, on: bool) {
+        if on {
+            self.window.fullscreen();
+        } else {
+            self.window.unfullscreen();
+        }
+        self.fullscreen_button.set_active(on);
     }
 
     /// Drop the self-reference cycle so the state can be freed with the window.
@@ -802,12 +862,7 @@ impl Inner {
         self.freeze_button.set_active(self.controller.is_frozen());
         self.mute_button.set_active(self.controller.is_muted());
         self.live_switch.set_active(self.controller.live_edit());
-        let on_design = self
-            .stack
-            .visible_child_name()
-            .map(|name| name.as_str() == "design")
-            .unwrap_or(false);
-        self.live_box.set_visible(on_design && open);
+        self.sync_page_chrome();
 
         self.menu_button.set_menu_model(Some(&self.build_menu()));
         for page in self.pages.borrow().iter() {

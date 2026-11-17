@@ -36,10 +36,26 @@ pub struct PrompterPage {
     mirror_v: gtk::Switch,
     output_label: gtk::Label,
     output_button: gtk::Button,
+    preview_aspect: gtk::AspectFrame,
     updating: RefCell<bool>,
     debounce: RefCell<Option<glib::SourceId>>,
     last_text: RefCell<String>,
     transport_running: Cell<bool>,
+}
+
+/// Aspect ratio of the prompter output: the assigned monitor, else 16:9.
+fn output_aspect(controller: &Controller) -> f64 {
+    let config = controller.config();
+    let monitors = crate::ui::outputs::monitor_list();
+    if let Some(index) =
+        crate::ui::outputs::resolve_monitor(config.outputs.prompter.monitor.as_ref(), &monitors)
+    {
+        let geometry = monitors[index].geometry();
+        if geometry.width() > 0 && geometry.height() > 0 {
+            return f64::from(geometry.width()) / f64::from(geometry.height());
+        }
+    }
+    16.0 / 9.0
 }
 
 impl PrompterPage {
@@ -196,12 +212,19 @@ impl PrompterPage {
         preview_title.add_css_class("title-4");
         preview_title.set_xalign(0.0);
         right.append(&preview_title);
-        let preview_frame = gtk::Frame::new(None);
-        preview_frame.add_css_class("scene-canvas");
-        preview_frame.set_hexpand(true);
-        preview_frame.set_vexpand(true);
-        preview_frame.set_child(Some(&preview));
-        right.append(&preview_frame);
+        // The preview must show the same shape as the prompter output, otherwise
+        // the wrapped text looks different from what the audience sees.
+        let preview_aspect = gtk::AspectFrame::builder()
+            .ratio(output_aspect(&controller) as f32)
+            .obey_child(false)
+            .halign(gtk::Align::Center)
+            .valign(gtk::Align::Center)
+            .hexpand(true)
+            .vexpand(true)
+            .child(&preview)
+            .build();
+        preview_aspect.add_css_class("scene-canvas");
+        right.append(&preview_aspect);
 
         root.append(&left);
         root.append(&right);
@@ -225,6 +248,7 @@ impl PrompterPage {
             mirror_v,
             output_label,
             output_button,
+            preview_aspect: preview_aspect.clone(),
             updating: RefCell::new(false),
             debounce: RefCell::new(None),
             last_text: RefCell::new(initial.text),
@@ -593,6 +617,8 @@ impl Page for PrompterPage {
     }
 
     fn refresh(&self) {
+        self.preview_aspect
+            .set_ratio(output_aspect(&self.controller) as f32);
         self.refresh_state();
     }
 }

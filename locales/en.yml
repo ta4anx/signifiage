@@ -18,6 +18,8 @@ menu:
   about: About Signifiage
   quit: Quit
   recent: Recent projects
+  fullscreen: Fullscreen (F11)
+  fullscreen_hint: Toggle fullscreen (F11)
 language:
   system: System default
   english: English
@@ -183,6 +185,9 @@ queue:
     not_waiting: Only waiting rows can be called.
     nothing_new: No new rows in the spreadsheet.
     nothing_to_undo: Nothing to undo.
+    random_picked: 'Random pick: %{name}'
+    restarted: Queue restarted from the top.
+    write_back_failed: 'Could not write the status back to the spreadsheet: %{error}'
   wizard:
     title: Import queue from spreadsheet
     file: Spreadsheet
@@ -207,6 +212,18 @@ queue:
   reading: Reading the spreadsheet…
   source_error: 'Cannot read the spreadsheet: %{message}'
   sync_never: never
+  show_last_called: Last called
+  show_last_called_hint: Keep the previous call visible at the bottom of the board (tracking).
+  show_next: Next in line
+  show_next_hint: Show who is waiting next; turn off to keep waiting names private.
+  show_ticket: Ticket numbers
+  show_ticket_hint: Show the ticket number in front of every name.
+  call_person: Call person…
+  random_pick: Random pick
+  restart: Restart list
+  restart_confirm: Put every row back to waiting, clear the current call and restart ticket numbers?
+  next_in_line: Next in line
+  last_called: Last called
 soundboard:
   pad_prefix: Pad
   page_prefix: Page
@@ -515,6 +532,8 @@ inspector:
   timer_count_up: Count-up timer
   timer_missing: The selected timer no longer exists.
   timer_none: No timers defined
+  show_last_called: Show last called
+  show_next: Show next in line
 prompter:
   title: Prompter
   script: Script
@@ -545,6 +564,8 @@ settings:
     displays: Displays
     project: Project
     remote: Remote
+    queue: Queue
+    experimental: Experimental
   about:
     adwaita: libadwaita
     gstreamer: GStreamer
@@ -625,6 +646,25 @@ settings:
     token: Token
     token_actions: Token actions
     warning: Plain HTTP on the LAN — anyone with the token can control the show.
+  queue:
+    call_sound: Calling
+    sound_enabled: Play a sound when a name is called
+    sound_hint: A short chime runs on the audio output device selected above.
+    sound_file: Call sound
+    sound_default: Bundled ding-dong
+    choose_file: Choose file…
+    use_default: Use default
+    test: Test
+    sound_missing: The selected call sound file is missing.
+    glow: Glow duration (seconds)
+    glow_hint: How long the called name pulses on the board (0 disables it).
+  experimental:
+    title: Queue experiments
+    hint: Off by default. These features touch live queue data and the linked spreadsheet; enable them only when you can verify the result.
+    random_pick: Random pick
+    random_pick_hint: 'Adds a Random pick button to the queue page: calls a random waiting person.'
+    write_back: Write status back to the .ods file
+    write_back_hint: When a name is called, write its status into the linked OpenDocument spreadsheet. Other formats are ignored.
 player:
   window:
     title: Signifiage player

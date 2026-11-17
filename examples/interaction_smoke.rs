@@ -68,6 +68,14 @@ fn collect<T: IsA<gtk::Widget>>(root: &impl IsA<gtk::Widget>) -> Vec<T> {
     found
 }
 
+/// Record one check into the shared score and print its outcome.
+fn check(score: &Cell<bool>, label: &str, passed: bool, detail: String) {
+    if !passed {
+        score.set(false);
+    }
+    println!("{} {label}: {detail}", if passed { "PASS" } else { "FAIL" });
+}
+
 fn dump(widget: &gtk::Widget, depth: usize) {
     if depth > 14 {
         return;
@@ -118,6 +126,7 @@ fn main() -> glib::ExitCode {
             let window_slot = window_slot.clone();
             let app = app.clone();
             glib::timeout_add_local_once(Duration::from_millis(700), move || {
+                let score = Rc::new(Cell::new(true));
                 let mut ok = true;
                 let mut report = |label: &str, passed: bool, detail: String| {
                     ok &= passed;
@@ -246,33 +255,6 @@ fn main() -> glib::ExitCode {
                             "registered on the window".into(),
                         );
                     }
-                    let before = gtk::Window::list_toplevels().len();
-                    ActionGroupExt::activate_action(&gtk_window, "new", None::<&glib::Variant>);
-                    let after = gtk::Window::list_toplevels().len();
-                    report(
-                        "menu action new opens the New Project dialog",
-                        after > before,
-                        format!("{before} -> {after} toplevels"),
-                    );
-                    for window in gtk::Window::list_toplevels() {
-                        if let Ok(window) = window.downcast::<gtk::Window>() {
-                            if !window.eq(&gtk_window)
-                                && window.title().as_deref() != Some("Signifiage Program")
-                            {
-                                window.close();
-                            }
-                        }
-                    }
-                    // Preferences and About are AdwDialogs (hosted, not toplevel
-                    // windows); activating them must not panic.
-                    ActionGroupExt::activate_action(
-                        &gtk_window,
-                        "settings",
-                        None::<&glib::Variant>,
-                    );
-                    ActionGroupExt::activate_action(&gtk_window, "about", None::<&glib::Variant>);
-                    report("menu actions settings/about run", true, "no panic".into());
-
                     // 4: a page button handler actually runs.
                     let was_black = controller.program().is_black();
                     let buttons: Vec<gtk::Button> = collect(&gtk_window);
@@ -296,42 +278,155 @@ fn main() -> glib::ExitCode {
                         ),
                     }
                 }
-                // The regression that broke every button: the caller drops the
-                // window handle while GTK keeps the window on screen. Activating a
-                // menu action afterwards must still work.
-                window_slot.borrow_mut().take();
-                let orphan = weak_window.as_ref().and_then(|weak| weak.upgrade());
-                match orphan {
-                    Some(window) => {
-                        let before = gtk::Window::list_toplevels().len();
-                        gtk::gio::prelude::ActionGroupExt::activate_action(
-                            &window,
-                            "new",
-                            None::<&glib::Variant>,
+                drop(report);
+                score.set(ok);
+
+                // Fullscreen is applied asynchronously by the window manager, so
+                // the checks run in later timeouts instead of reading the flag now.
+                if let Some(window) = weak_window.as_ref().and_then(|weak| weak.upgrade()) {
+                    gtk::gio::prelude::ActionGroupExt::activate_action(
+                        &window,
+                        "fullscreen",
+                        None::<&glib::Variant>,
+                    );
+                }
+                {
+                    let score = score.clone();
+                    let weak_window = weak_window.clone();
+                    let window_slot = window_slot.clone();
+                    let outcome = outcome.clone();
+                    let app = app.clone();
+                    glib::timeout_add_local_once(Duration::from_millis(500), move || {
+                        let fullscreen = weak_window
+                            .as_ref()
+                            .and_then(|weak| weak.upgrade())
+                            .is_some_and(|window| window.is_fullscreen());
+                        check(
+                            &score,
+                            "fullscreen action enters fullscreen",
+                            fullscreen,
+                            "window fullscreen flag".into(),
                         );
-                        let after = gtk::Window::list_toplevels().len();
-                        report(
-                            "handlers survive the caller dropping the window",
-                            after > before,
-                            format!("{before} -> {after} toplevels after drop"),
-                        );
-                        for other in gtk::Window::list_toplevels() {
-                            if let Ok(other) = other.downcast::<gtk::Window>() {
-                                if !other.eq(&window) {
-                                    other.close();
+                        if let Some(window) = weak_window.as_ref().and_then(|weak| weak.upgrade()) {
+                            gtk::gio::prelude::ActionGroupExt::activate_action(
+                                &window,
+                                "fullscreen",
+                                None::<&glib::Variant>,
+                            );
+                        }
+                        let score = score.clone();
+                        let weak_window = weak_window.clone();
+                        let window_slot = window_slot.clone();
+                        let outcome = outcome.clone();
+                        let app = app.clone();
+                        glib::timeout_add_local_once(Duration::from_millis(500), move || {
+                            let left_fullscreen = weak_window
+                                .as_ref()
+                                .and_then(|weak| weak.upgrade())
+                                .is_none_or(|window| !window.is_fullscreen());
+                            check(
+                                &score,
+                                "fullscreen action leaves fullscreen",
+                                left_fullscreen,
+                                "window fullscreen flag".into(),
+                            );
+
+                            // The New Project dialog is a real toplevel window; check
+                            // it after the fullscreen stages so a closed dialog can
+                            // never sit between a fullscreen request and the WM.
+                            if let Some(window) =
+                                weak_window.as_ref().and_then(|weak| weak.upgrade())
+                            {
+                                let before = gtk::Window::list_toplevels().len();
+                                gtk::gio::prelude::ActionGroupExt::activate_action(
+                                    &window,
+                                    "new",
+                                    None::<&glib::Variant>,
+                                );
+                                let after = gtk::Window::list_toplevels().len();
+                                check(
+                                    &score,
+                                    "menu action new opens the New Project dialog",
+                                    after > before,
+                                    format!("{before} -> {after} toplevels"),
+                                );
+                                for other in gtk::Window::list_toplevels() {
+                                    if let Ok(other) = other.downcast::<gtk::Window>() {
+                                        let title = other
+                                            .title()
+                                            .map(|t| t.to_string())
+                                            .unwrap_or_default();
+                                        if title.contains("New Project") {
+                                            other.close();
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                    None => report(
-                        "handlers survive the caller dropping the window",
-                        false,
-                        "window gone".into(),
-                    ),
-                }
 
-                outcome.set(ok);
-                app.quit();
+                            // Preferences and About are AdwDialogs (hosted, not
+                            // toplevel windows); activating them must not panic.
+                            if let Some(window) =
+                                weak_window.as_ref().and_then(|weak| weak.upgrade())
+                            {
+                                gtk::gio::prelude::ActionGroupExt::activate_action(
+                                    &window,
+                                    "settings",
+                                    None::<&glib::Variant>,
+                                );
+                                gtk::gio::prelude::ActionGroupExt::activate_action(
+                                    &window,
+                                    "about",
+                                    None::<&glib::Variant>,
+                                );
+                                check(
+                                    &score,
+                                    "menu actions settings/about run",
+                                    true,
+                                    "no panic".into(),
+                                );
+                            }
+
+                            // The regression that broke every button: the caller
+                            // drops the window handle while GTK keeps the window on
+                            // screen. Menu actions must still work afterwards.
+                            window_slot.borrow_mut().take();
+                            let orphan = weak_window.as_ref().and_then(|weak| weak.upgrade());
+                            match orphan {
+                                Some(window) => {
+                                    let before = gtk::Window::list_toplevels().len();
+                                    gtk::gio::prelude::ActionGroupExt::activate_action(
+                                        &window,
+                                        "new",
+                                        None::<&glib::Variant>,
+                                    );
+                                    let after = gtk::Window::list_toplevels().len();
+                                    check(
+                                        &score,
+                                        "handlers survive the caller dropping the window",
+                                        after > before,
+                                        format!("{before} -> {after} toplevels after drop"),
+                                    );
+                                    for other in gtk::Window::list_toplevels() {
+                                        if let Ok(other) = other.downcast::<gtk::Window>() {
+                                            if !other.eq(&window) {
+                                                other.close();
+                                            }
+                                        }
+                                    }
+                                }
+                                None => check(
+                                    &score,
+                                    "handlers survive the caller dropping the window",
+                                    false,
+                                    "window gone".into(),
+                                ),
+                            }
+
+                            outcome.set(score.get());
+                            app.quit();
+                        });
+                    });
+                }
             });
         });
     }

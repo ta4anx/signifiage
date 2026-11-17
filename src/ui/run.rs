@@ -87,9 +87,7 @@ pub struct RunPage {
     black_button: gtk::ToggleButton,
     freeze_button: gtk::ToggleButton,
     mute_button: gtk::ToggleButton,
-    queue_now: gtk::Label,
-    queue_note: gtk::Label,
-    queue_next: gtk::Label,
+
     deck_card: gtk::Box,
     deck_status: gtk::Label,
     deck_worker: RefCell<Option<DeckWorker>>,
@@ -129,16 +127,6 @@ impl RunPage {
 
         let timer_box = gtk::Box::new(gtk::Orientation::Vertical, 6);
 
-        let queue_now = gtk::Label::new(None);
-        queue_now.add_css_class("title-2");
-        queue_now.set_xalign(0.0);
-        let queue_note = gtk::Label::new(None);
-        queue_note.add_css_class("dim-label");
-        queue_note.set_xalign(0.0);
-        let queue_next = gtk::Label::new(None);
-        queue_next.set_xalign(0.0);
-        queue_next.set_wrap(true);
-
         let page = Rc::new(Self {
             root: gtk::Box::new(gtk::Orientation::Vertical, 0),
             controller: controller.clone(),
@@ -156,9 +144,7 @@ impl RunPage {
             black_button: black_button.clone(),
             freeze_button: freeze_button.clone(),
             mute_button: mute_button.clone(),
-            queue_now: queue_now.clone(),
-            queue_note: queue_note.clone(),
-            queue_next: queue_next.clone(),
+
             deck_card: gtk::Box::new(gtk::Orientation::Horizontal, 6),
             deck_status: gtk::Label::new(None),
             deck_worker: RefCell::new(DeckWorker::spawn()),
@@ -279,72 +265,7 @@ impl RunPage {
         middle.append(&timer_section);
         middle.set_hexpand(true);
 
-        let right = gtk::Box::new(gtk::Orientation::Vertical, 6);
-        let (queue_section, queue_content) = widgets::section(&t!("run.queue").to_string());
-        queue_content.append(&queue_now);
-        queue_content.append(&queue_note);
-        queue_content.append(&queue_next);
-        let queue_buttons = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        let next = widgets::suggested(&t!("queue.next").to_string());
-        let recall = widgets::button(&t!("queue.recall").to_string());
-        let done = widgets::button(&t!("queue.done").to_string());
-        {
-            let controller = controller.clone();
-            let overlay = overlay.clone();
-            next.connect_clicked(move |_| {
-                if !controller.queue_next() {
-                    widgets::toast(&overlay, &t!("queue.toast.nobody_waiting").to_string());
-                }
-            });
-        }
-        {
-            let controller = controller.clone();
-            let overlay = overlay.clone();
-            recall.connect_clicked(move |_| {
-                if !controller.queue_recall() {
-                    widgets::toast(&overlay, &t!("queue.toast.no_current").to_string());
-                }
-            });
-        }
-        {
-            let controller = controller.clone();
-            let overlay = overlay.clone();
-            done.connect_clicked(move |_| {
-                if !controller.queue_done() {
-                    widgets::toast(&overlay, &t!("queue.toast.no_current").to_string());
-                }
-            });
-        }
-        queue_buttons.append(&next);
-        queue_buttons.append(&recall);
-        queue_buttons.append(&done);
-        queue_content.append(&queue_buttons);
-        queue_section.set_width_request(320);
-        right.append(&queue_section);
-
-        // Deck card: only relevant when the program scene captures something.
-        let deck_section = widgets::section(&t!("deck.title").to_string()).0;
-        {
-            let next = widgets::button(&t!("deck.next").to_string());
-            let page_next = page.clone();
-            next.connect_clicked(move |_| page_next.deck_call(DeckCall::Next));
-            let prev = widgets::button(&t!("deck.prev").to_string());
-            let page_prev = page.clone();
-            prev.connect_clicked(move |_| page_prev.deck_call(DeckCall::Prev));
-            let row = page.deck_card.clone();
-            row.append(&prev);
-            row.append(&next);
-            row.append(&page.deck_status);
-            if let Some(content) = deck_section
-                .last_child()
-                .and_then(|c| c.downcast::<gtk::Box>().ok())
-            {
-                content.append(&row);
-                content.append(&widgets::dim_label(&t!("deck.hint").to_string()));
-            }
-        }
-
-        // Poll deck results on the UI thread instead of blocking it.
+        // Deck results arrive from the worker thread; drain them on the UI tick.
         {
             let page = page.clone();
             gtk::glib::timeout_add_local(std::time::Duration::from_millis(250), move || {
@@ -360,7 +281,6 @@ impl RunPage {
         bottom.set_margin_end(12);
         bottom.append(&left);
         bottom.append(&middle);
-        bottom.append(&right);
 
         let page_clone = page.clone();
         playlist_list.connect_row_activated(move |_, row| {
@@ -532,39 +452,6 @@ impl Page for RunPage {
 
         self.refresh_playlist();
         self.refresh_timers();
-
-        let queue = controller.queue();
-        match &queue.current {
-            Some(row) => {
-                self.queue_now.set_text(&format!(
-                    "{} · {}",
-                    crate::model::queue::pad_ticket(&row.ticket),
-                    row.name
-                ));
-                self.queue_note.set_text(&row.note);
-            }
-            None => {
-                self.queue_now.set_text(&t!("queue.no_current").to_string());
-                self.queue_note.set_text("");
-            }
-        }
-        let upcoming: Vec<String> = queue
-            .upcoming
-            .iter()
-            .take(3)
-            .map(|row| {
-                format!(
-                    "{}  {}",
-                    crate::model::queue::pad_ticket(&row.ticket),
-                    row.name
-                )
-            })
-            .collect();
-        self.queue_next.set_text(&if upcoming.is_empty() {
-            t!("queue.no_waiting").to_string()
-        } else {
-            upcoming.join("\n")
-        });
 
         self.deck_card.set_visible(self.deck_visible());
         let live = self.controller.live();

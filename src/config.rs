@@ -133,6 +133,34 @@ pub struct Outputs {
     pub prompter: OutputRole,
 }
 
+/// Sound played when a name is called.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct CallSound {
+    pub enabled: bool,
+    /// `None` plays the bundled ding-dong; a path plays that file instead.
+    pub path: Option<PathBuf>,
+}
+
+impl Default for CallSound {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            path: None,
+        }
+    }
+}
+
+/// Features that are still being validated with real shows.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Experimental {
+    /// "Random pick" button on the queue page.
+    pub random_pick: bool,
+    /// Write the called status back into the linked `.ods` file.
+    pub write_back: bool,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct RemoteConfig {
@@ -165,6 +193,12 @@ pub struct Config {
     pub audio_sink: Option<String>,
     pub capture_backend: CaptureBackend,
     pub remote: RemoteConfig,
+    /// Chime played when a queue name is called.
+    pub call_sound: CallSound,
+    /// Seconds the called name keeps the breathing glow (0 disables it).
+    pub call_glow_secs: f64,
+    /// Off by default; toggled in Preferences → Experimental.
+    pub experimental: Experimental,
 }
 
 impl Default for Config {
@@ -180,6 +214,9 @@ impl Default for Config {
             audio_sink: None,
             capture_backend: CaptureBackend::Auto,
             remote: RemoteConfig::default(),
+            call_sound: CallSound::default(),
+            call_glow_secs: 5.0,
+            experimental: Experimental::default(),
         }
     }
 }

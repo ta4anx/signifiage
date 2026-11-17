@@ -5,9 +5,11 @@
 
 pub mod assets;
 pub mod capture;
+pub mod chime;
 pub mod controller;
 pub mod deck;
 pub mod media;
+pub mod ods_writeback;
 pub mod portal;
 pub mod queue;
 pub mod queue_source;

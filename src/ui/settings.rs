@@ -30,6 +30,8 @@ impl SettingsWindow {
         window.add(&build_audio(&controller));
         window.add(&build_project(&controller));
         window.add(&build_remote(&controller));
+        window.add(&build_queue(&controller));
+        window.add(&build_experimental(&controller));
         window.add(&build_capture(&controller));
         window.add(&build_appearance(&controller));
         window.add(&build_about(&controller));
@@ -39,9 +41,11 @@ impl SettingsWindow {
 
 // ------------------------------------------------------------------ helpers
 
-fn page(title: &str) -> adw::PreferencesPage {
+fn page(title: &str, icon_name: &str) -> adw::PreferencesPage {
     let page = adw::PreferencesPage::new();
     page.set_title(title);
+    // Without an icon the dialog's page switcher shows the "image missing" glyph.
+    page.set_icon_name(Some(icon_name));
     page
 }
 
@@ -137,7 +141,10 @@ fn monitor_row(
 
 fn build_displays(controller: &Rc<Controller>) -> adw::PreferencesPage {
     let config = controller.config();
-    let page = page(&t!("settings.section.displays").to_string());
+    let page = page(
+        &t!("settings.section.displays").to_string(),
+        "video-display-symbolic",
+    );
     let group = group(&t!("settings.section.displays").to_string());
 
     monitor_row(
@@ -231,7 +238,10 @@ fn audio_selection(devices: &[(String, String)], sink: Option<&str>) -> u32 {
 
 fn build_audio(controller: &Rc<Controller>) -> adw::PreferencesPage {
     let config = controller.config();
-    let page = page(&t!("settings.section.audio").to_string());
+    let page = page(
+        &t!("settings.section.audio").to_string(),
+        "audio-volume-high-symbolic",
+    );
     let group = group(&t!("settings.section.audio").to_string());
 
     let devices = Rc::new(RefCell::new(MediaHub::audio_devices()));
@@ -380,7 +390,10 @@ fn project_available(controller: &Rc<Controller>) -> bool {
 }
 
 fn build_project(controller: &Rc<Controller>) -> adw::PreferencesPage {
-    let page = page(&t!("settings.section.project").to_string());
+    let page = page(
+        &t!("settings.section.project").to_string(),
+        "document-edit-symbolic",
+    );
     let group = group(&t!("settings.section.project").to_string());
     let open = controller.is_open();
     let project = controller.project_clone();
@@ -643,7 +656,10 @@ fn remote_status(config: &Config) -> String {
 
 fn build_remote(controller: &Rc<Controller>) -> adw::PreferencesPage {
     let config = controller.config();
-    let page = page(&t!("settings.section.remote").to_string());
+    let page = page(
+        &t!("settings.section.remote").to_string(),
+        "network-wireless-symbolic",
+    );
     let group = group(&t!("settings.section.remote").to_string());
 
     let enabled = gtk::Switch::new();
@@ -756,9 +772,181 @@ fn build_remote(controller: &Rc<Controller>) -> adw::PreferencesPage {
 
 // ----------------------------------------------------------------- capture
 
+// ------------------------------------------------------------------- queue
+
+fn build_queue(controller: &Rc<Controller>) -> adw::PreferencesPage {
+    let config = controller.config();
+    let page = page(
+        &t!("settings.section.queue").to_string(),
+        "view-list-symbolic",
+    );
+    let group = group(&t!("settings.queue.call_sound").to_string());
+
+    let enabled = widgets::switch(config.call_sound.enabled);
+    {
+        let controller = controller.clone();
+        enabled.connect_state_set(move |_, state| {
+            update_config(&controller, |config| config.call_sound.enabled = state);
+            gtk::glib::Propagation::Proceed
+        });
+    }
+    group.add(&row(
+        &t!("settings.queue.sound_enabled").to_string(),
+        Some(&t!("settings.queue.sound_hint").to_string()),
+        &enabled,
+    ));
+
+    let sound_row = adw::ActionRow::builder()
+        .title(t!("settings.queue.sound_file").to_string())
+        .subtitle(match &config.call_sound.path {
+            Some(path) => path.display().to_string(),
+            None => t!("settings.queue.sound_default").to_string(),
+        })
+        .build();
+    let choose = widgets::button(&t!("settings.queue.choose_file").to_string());
+    let reset = widgets::button(&t!("settings.queue.use_default").to_string());
+    let test = widgets::button(&t!("settings.queue.test").to_string());
+    let buttons = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    buttons.append(&choose);
+    buttons.append(&reset);
+    buttons.append(&test);
+    sound_row.add_suffix(&buttons);
+    group.add(&sound_row);
+
+    {
+        let controller = controller.clone();
+        let sound_row = sound_row.clone();
+        let parent = None::<gtk::Window>;
+        choose.connect_clicked(move |_| {
+            let dialog = gtk::FileDialog::builder()
+                .title(t!("settings.queue.choose_file").to_string())
+                .modal(true)
+                .build();
+            let filter = gtk::FileFilter::new();
+            filter.set_name(Some(&t!("soundboard.audio_filter").to_string()));
+            for suffix in crate::services::assets::AUDIO_EXTENSIONS {
+                filter.add_suffix(suffix);
+            }
+            let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
+            filters.append(&filter);
+            dialog.set_filters(Some(&filters));
+            let sound_row = sound_row.clone();
+            let controller = controller.clone();
+            dialog.open(
+                parent.as_ref(),
+                gtk::gio::Cancellable::NONE,
+                move |result| {
+                    let Ok(file) = result else {
+                        return;
+                    };
+                    let Some(path) = file.path() else {
+                        return;
+                    };
+                    sound_row.set_subtitle(&path.display().to_string());
+                    update_config(&controller, |config| {
+                        config.call_sound.path = Some(path.clone());
+                        config.call_sound.enabled = true;
+                    });
+                },
+            );
+        });
+    }
+    {
+        let controller = controller.clone();
+        let sound_row = sound_row.clone();
+        reset.connect_clicked(move |_| {
+            sound_row.set_subtitle(&t!("settings.queue.sound_default").to_string());
+            update_config(&controller, |config| config.call_sound.path = None);
+        });
+    }
+    {
+        let controller = controller.clone();
+        test.connect_clicked(move |_| {
+            let config = controller.config();
+            match crate::services::chime::resolve(true, config.call_sound.path.as_deref()) {
+                Some(path) => crate::services::chime::play_once(&path, config.audio_sink.clone()),
+                None => controller.toast(&t!("settings.queue.sound_missing").to_string()),
+            }
+        });
+    }
+
+    let glow = widgets::spin(0.0, 15.0, 0.5, config.call_glow_secs);
+    {
+        let controller = controller.clone();
+        glow.connect_value_changed(move |spin| {
+            let value = spin.value();
+            update_config(&controller, |config| config.call_glow_secs = value);
+        });
+    }
+    group.add(&row(
+        &t!("settings.queue.glow").to_string(),
+        Some(&t!("settings.queue.glow_hint").to_string()),
+        &glow,
+    ));
+
+    page.add(&group);
+    page
+}
+
+// -------------------------------------------------------------- experimental
+
+fn build_experimental(controller: &Rc<Controller>) -> adw::PreferencesPage {
+    let config = controller.config();
+    let page = page(
+        &t!("settings.section.experimental").to_string(),
+        "applications-science-symbolic",
+    );
+    let group = group(&t!("settings.experimental.title").to_string());
+    group.add(&note_label(&t!("settings.experimental.hint").to_string()));
+
+    let random = widgets::switch(config.experimental.random_pick);
+    {
+        let controller = controller.clone();
+        random.connect_state_set(move |_, state| {
+            update_config(&controller, |config| {
+                config.experimental.random_pick = state
+            });
+            gtk::glib::Propagation::Proceed
+        });
+    }
+    group.add(&row(
+        &t!("settings.experimental.random_pick").to_string(),
+        Some(&t!("settings.experimental.random_pick_hint").to_string()),
+        &random,
+    ));
+
+    let write_back = widgets::switch(config.experimental.write_back);
+    write_back.set_sensitive(config.experimental.random_pick);
+    {
+        let write_back = write_back.clone();
+        random.connect_state_set(move |_, state| {
+            write_back.set_sensitive(state);
+            gtk::glib::Propagation::Proceed
+        });
+    }
+    {
+        let controller = controller.clone();
+        write_back.connect_state_set(move |_, state| {
+            update_config(&controller, |config| config.experimental.write_back = state);
+            gtk::glib::Propagation::Proceed
+        });
+    }
+    group.add(&row(
+        &t!("settings.experimental.write_back").to_string(),
+        Some(&t!("settings.experimental.write_back_hint").to_string()),
+        &write_back,
+    ));
+
+    page.add(&group);
+    page
+}
+
 fn build_capture(controller: &Rc<Controller>) -> adw::PreferencesPage {
     let config = controller.config();
-    let page = page(&t!("settings.section.capture").to_string());
+    let page = page(
+        &t!("settings.section.capture").to_string(),
+        "camera-web-symbolic",
+    );
     let group = group(&t!("settings.section.capture").to_string());
 
     let backends = [
@@ -808,7 +996,10 @@ fn theme_label(theme: Theme) -> String {
 
 fn build_appearance(controller: &Rc<Controller>) -> adw::PreferencesPage {
     let config = controller.config();
-    let page = page(&t!("settings.section.appearance").to_string());
+    let page = page(
+        &t!("settings.section.appearance").to_string(),
+        "preferences-desktop-appearance-symbolic",
+    );
     let group = group(&t!("settings.section.appearance").to_string());
 
     let themes = [Theme::System, Theme::Dark, Theme::Light];
@@ -870,7 +1061,10 @@ fn build_appearance(controller: &Rc<Controller>) -> adw::PreferencesPage {
 
 fn build_about(controller: &Rc<Controller>) -> adw::PreferencesPage {
     let _ = controller;
-    let page = page(&t!("settings.section.about").to_string());
+    let page = page(
+        &t!("settings.section.about").to_string(),
+        "help-about-symbolic",
+    );
     let group = group(&t!("settings.section.about").to_string());
 
     let version = gtk::Label::new(Some(crate::VERSION));

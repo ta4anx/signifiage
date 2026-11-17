@@ -47,6 +47,7 @@ fn main() -> glib::ExitCode {
     let mut width = 1440;
     let mut height = 900;
     let mut prompter_output = false;
+    let mut open_settings = false;
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -72,6 +73,7 @@ fn main() -> glib::ExitCode {
                 }
             }
             "--prompter-output" => prompter_output = true,
+            "--settings" => open_settings = true,
             "--height" => {
                 if let Some(value) = args.next().and_then(|v| v.parse().ok()) {
                     height = value;
@@ -109,6 +111,13 @@ fn main() -> glib::ExitCode {
                     outputs.open_windowed(signifiage::ui::outputs::OutputRole::Prompter);
                 }
                 main.controller().apply_output_config();
+            }
+            if open_settings {
+                gtk::gio::prelude::ActionGroupExt::activate_action(
+                    main.window(),
+                    "settings",
+                    None::<&glib::Variant>,
+                );
             }
             window.replace(Some(main));
 

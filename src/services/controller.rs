@@ -291,6 +291,9 @@ pub struct Controller {
     mode: Mode,
     project_open: Cell<bool>,
     app: RefCell<Option<adw::Application>>,
+    media_dirty: Cell<bool>,
+    chime: RefCell<crate::services::chime::ChimePlayer>,
+    glow_started: RefCell<Option<Instant>>,
     portal_pending: RefCell<std::collections::HashSet<String>>,
     portal_results: RefCell<
         std::collections::HashMap<
@@ -353,6 +356,9 @@ impl Controller {
             mode,
             project_open: Cell::new(false),
             app: RefCell::new(None),
+            media_dirty: Cell::new(true),
+            chime: RefCell::new(crate::services::chime::ChimePlayer::new()),
+            glow_started: RefCell::new(None),
             portal_pending: RefCell::new(std::collections::HashSet::new()),
             portal_results: RefCell::new(std::collections::HashMap::new()),
             live: Rc::new(LiveFlags::default()),
@@ -1805,13 +1811,11 @@ impl Controller {
     }
 
     pub fn queue_next(&self) -> bool {
-        let changed = self.queue.borrow_mut().next();
-        self.after_queue_action(changed)
+        self.queue_with_call(|service| service.next())
     }
 
     pub fn queue_recall(&self) -> bool {
-        let changed = self.queue.borrow_mut().recall();
-        self.after_queue_action(changed)
+        self.queue_with_call(|service| service.recall())
     }
 
     pub fn queue_done(&self) -> bool {
@@ -1820,13 +1824,142 @@ impl Controller {
     }
 
     pub fn queue_skip(&self) -> bool {
-        let changed = self.queue.borrow_mut().skip();
-        self.after_queue_action(changed)
+        self.queue_with_call(|service| service.skip())
     }
 
     pub fn queue_call(&self, id: &str) -> bool {
-        let changed = self.queue.borrow_mut().call(id);
+        self.queue_with_call(|service| service.call(id))
+    }
+
+    /// Display switches read from the first queue layer in the project.
+    pub fn queue_display(&self) -> (bool, bool, bool) {
+        let project = self.project.borrow();
+        for scene in &project.scenes {
+            for layer in &scene.layers {
+                if let LayerKind::Queue(props) = &layer.kind {
+                    return (props.show_last_called, props.show_next, props.show_ticket);
+                }
+            }
+        }
+        (true, true, true)
+    }
+
+    /// Apply the display switches to every queue layer in the project.
+    pub fn set_queue_display(
+        &self,
+        last_called: Option<bool>,
+        next: Option<bool>,
+        ticket: Option<bool>,
+    ) {
+        self.mutate(Some("queue-display"), |project| {
+            for scene in &mut project.scenes {
+                for layer in &mut scene.layers {
+                    if let LayerKind::Queue(props) = &mut layer.kind {
+                        if let Some(value) = last_called {
+                            props.show_last_called = value;
+                        }
+                        if let Some(value) = next {
+                            props.show_next = value;
+                        }
+                        if let Some(value) = ticket {
+                            props.show_ticket = value;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /// Call a random waiting row (experimental feature).
+    pub fn queue_call_random(&self) -> Option<crate::model::QueueRow> {
+        let picked = self.queue.borrow_mut().call_random()?;
+        self.after_queue_action(true);
+        Some(picked)
+    }
+
+    /// Put the whole list back to waiting and restart the ticket counter.
+    pub fn queue_restart(&self) -> bool {
+        let changed = self.queue.borrow_mut().restart();
+        self.glow_started.replace(None);
         self.after_queue_action(changed)
+    }
+
+    /// Run a queue mutation that may move the current row, then announce it.
+    fn queue_with_call(
+        &self,
+        action: impl FnOnce(&mut crate::services::queue::QueueService) -> bool,
+    ) -> bool {
+        let previous = self.queue.borrow().snapshot().current.map(|row| row.id);
+        let changed = action(&mut self.queue.borrow_mut());
+        self.after_queue_action(changed);
+        if changed {
+            let now = self.queue.borrow().snapshot().current.map(|row| row.id);
+            if now != previous
+                && let Some(row) = self.queue.borrow().snapshot().current
+            {
+                self.announce_call(&row);
+            }
+        }
+        changed
+    }
+
+    /// Chime plus the breathing glow for a freshly called row.
+    fn announce_call(&self, row: &crate::model::QueueRow) {
+        self.glow_started.replace(Some(Instant::now()));
+        let config = self.config.borrow().clone();
+        if let Some(path) = crate::services::chime::resolve(
+            config.call_sound.enabled,
+            config.call_sound.path.as_deref(),
+        ) {
+            self.chime
+                .borrow_mut()
+                .play(&path, config.audio_sink.as_deref());
+        }
+        self.write_back_status(row);
+        self.refresh_render_data();
+    }
+
+    /// Experimental: mark the called row inside the linked `.ods` spreadsheet.
+    fn write_back_status(&self, row: &crate::model::QueueRow) {
+        let config = self.config.borrow().clone();
+        if !(config.experimental.random_pick && config.experimental.write_back) {
+            return;
+        }
+        let Some(source) = self.queue_source() else {
+            return;
+        };
+        let Some(status_col) = source.status_col else {
+            return;
+        };
+        let path = std::path::PathBuf::from(&source.path);
+        if path.extension().and_then(|ext| ext.to_str()) != Some("ods") {
+            return;
+        }
+        match crate::services::ods_writeback::write_status(
+            &path,
+            &source.sheet,
+            source.header_row,
+            source.name_col,
+            source.ticket_col,
+            status_col,
+            &row.name,
+            &row.ticket,
+            row.status.id(),
+        ) {
+            Ok(updated) => {
+                tracing::info!(updated, "queue status written back to {}", path.display())
+            }
+            Err(err) => {
+                tracing::warn!(
+                    "cannot write queue status back to {}: {err}",
+                    path.display()
+                );
+                self.toast(&rust_i18n::t!(
+                    "queue.toast.write_back_failed",
+                    error = err.to_string()
+                ));
+            }
+        }
     }
 
     pub fn queue_add(&self, name: &str, note: &str) -> bool {
@@ -2053,6 +2186,7 @@ impl Controller {
 
     /// Push current state into every attached view.
     pub fn refresh_views(&self) {
+        self.media_dirty.set(true);
         self.clamp_preview();
         let links: Vec<(ViewRole, SceneView)> = self
             .views
@@ -2084,6 +2218,18 @@ impl Controller {
             name: row.name.clone(),
             note: row.note.clone(),
         });
+        let last_called = queue.last_called.as_ref().map(|row| QueueEntry {
+            ticket: row.ticket.clone(),
+            name: row.name.clone(),
+            note: row.note.clone(),
+        });
+        let glow_secs = self.config.borrow().call_glow_secs;
+        let glow_phase = self
+            .glow_started
+            .borrow()
+            .filter(|_| current.is_some() && glow_secs > 0.0)
+            .map(|started| started.elapsed().as_secs_f64())
+            .filter(|elapsed| *elapsed < glow_secs);
         let upcoming = queue
             .upcoming
             .iter()
@@ -2118,6 +2264,8 @@ impl Controller {
         let eta_secs = self.program_remaining().map(|secs| secs.ceil() as i64);
         RenderData {
             current,
+            last_called,
+            glow_phase,
             upcoming,
             timers,
             eta: Some(format_eta(eta_secs)),
@@ -2239,9 +2387,15 @@ impl Controller {
             }
         }
         if changed {
+            self.media_dirty.set(true);
             self.reconcile_media();
             self.refresh_views();
         }
+    }
+
+    /// Force the next tick to reconcile media (scene or audio config changed).
+    pub fn mark_media_dirty(&self) {
+        self.media_dirty.set(true);
     }
 
     /// Keep pipelines in sync with the committed program and current preview.
@@ -2249,6 +2403,12 @@ impl Controller {
         if !self.is_open() {
             return;
         }
+        // Building or rebuilding pipelines is expensive; only do it when the
+        // program/preview scene actually changed, never on every 100 ms tick.
+        if !self.media_dirty.get() {
+            return;
+        }
+        self.media_dirty.set(false);
         let program_scene = self.program.borrow().scene.clone();
         let black = self.black.get();
         let program_specs = if black {
@@ -2297,6 +2457,7 @@ impl Controller {
     /// 100 ms heartbeat: autosave, auto-advance, media bus and 4 fps text.
     pub fn tick(&self) {
         self.poll_portal();
+        self.chime.borrow_mut().poll();
         self.poll_media();
         self.autosave_tick();
         self.run_advance();
